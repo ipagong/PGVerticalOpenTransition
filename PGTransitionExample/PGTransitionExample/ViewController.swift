@@ -23,20 +23,10 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         
         openTransition = VerticalOpenTransition(target: self, presenting: innerViewcontroller)
         openTransition!.openDelegate = self
-        openTransition!.lowerViews = [bottomContents, bottomMenu]
         if let naviBar = self.navigationController?.navigationBar { openTransition!.raiseViews = [naviBar] }
+        openTransition!.lowerViews = [bottomContents, bottomMenu]
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        openTransition!.updateMaxDistance()
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
     func raiseViewsWith(transition:VerticalOpenTransition) -> Array<UIView>? {
         if let naviBar = self.navigationController?.navigationBar {
             return [naviBar]
