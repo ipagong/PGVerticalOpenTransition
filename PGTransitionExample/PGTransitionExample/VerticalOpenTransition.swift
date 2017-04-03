@@ -26,7 +26,6 @@ public protocol VerticalOpenTransitionDelegate : NSObjectProtocol {
 /*
  
  TODO-LIST:
- - public 액션 메소드
  - 컨텐트뷰 중심인 상태로 펼쳐지게하기
  - 각 뷰의 펼쳐짐 시점이 다르게 동작.
  - 컨텐트 뷰가 여백이 남아있는 경우 오므라들기.
@@ -36,8 +35,8 @@ public protocol VerticalOpenTransitionDelegate : NSObjectProtocol {
 @objc
 public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIViewControllerAnimatedTransitioning, UIViewControllerTransitioningDelegate, UIGestureRecognizerDelegate {
     
-    public var raiseViews:Array<UIView>? //{ didSet { updateMaxDistance() } }
-    public var lowerViews:Array<UIView>? //{ didSet { updateMaxDistance() } }
+    public var raiseViews:Array<UIView>? { didSet { updateMaxDistance() } }
+    public var lowerViews:Array<UIView>? { didSet { updateMaxDistance() } }
     
     public private(set) var contentView:UIView?
     
@@ -79,7 +78,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     private var openPresentationStyle:UIModalPresentationStyle { return .custom }
     private var presentBlock:VerticalOpenVoidBlock?
     private var dismissBlock:VerticalOpenVoidBlock?
-    private var canPresent:Bool { return self.openDelegate?.canPresentWith?(transition: self) ?? true }
+    private var canPresent:Bool {
+        guard ((raiseViews?.count ?? 0) + (lowerViews?.count ?? 0)) > 0 else { return false }
+        return self.openDelegate?.canPresentWith?(transition: self) ?? true
+    }
     private var canDismiss:Bool { return self.openDelegate?.canDismissWith?(transition: self) ?? true }
     
     private var maxDistance:CGFloat = 0
@@ -125,20 +127,18 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     private func updateMaxDistance() {
         
-        guard let window = UIApplication.shared.keyWindow else { return }
+        guard let window = target.view.window else { return }
         
         maxDistance = 0
         
-        for raise in raiseViews! {
-            let viewMax = raise.convert(CGPoint(x:0, y:raise.frame.height), to: window).y
-            raise.maxOpenDistance = viewMax
-            if maxDistance < viewMax { maxDistance = viewMax }
+        raiseViews?.forEach {
+            $0.maxOpenDistance = $0.convert(CGPoint(x:0, y:$0.frame.height), to: window).y
+            if maxDistance < $0.maxOpenDistance { maxDistance = $0.maxOpenDistance }
         }
         
-        for lower in lowerViews! {
-            let viewMax = window.frame.height - lower.convert(CGPoint.zero, to: window).y
-            lower.maxOpenDistance = viewMax
-            if maxDistance < viewMax { maxDistance = viewMax }
+        lowerViews?.forEach {
+            $0.maxOpenDistance = window.frame.height - $0.convert(CGPoint.zero, to: window).y
+            if maxDistance < $0.maxOpenDistance { maxDistance = $0.maxOpenDistance }
         }
     }
     
@@ -191,13 +191,12 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         default:
             break
         }
-        
     }
     
     public func onDismissWith(gesture:UIPanGestureRecognizer) {
         guard let _ = presenting    else { return }
-        guard isAnimated  == false  else { return }
-        guard canDismiss  == true   else { return }
+        guard isAnimated == false   else { return }
+        guard canDismiss == true    else { return }
         guard enableDismiss == true else { return }
         guard isPresented == true   else { return }
         
@@ -259,6 +258,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     private func presentAnimation(from:UIViewController, to:UIViewController, container:UIView, context: UIViewControllerContextTransitioning) {
         container.addSubview(to.view)
+        
+        if maxDistance == 0 { updateMaxDistance() }
         
         let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
         let lowerSnapshots = self.lowerViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
@@ -388,8 +389,63 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     //MARK: - public methods
     
+    @objc
+    public func presentVerticalOpenViewController() {
+        self.presentVerticalOpenViewController(animated: true, completion: nil)
+    }
+    
+    @objc
+    public func presentVerticalOpenViewController(animated:Bool) {
+        self.presentVerticalOpenViewController(animated: animated, completion: nil)
+    }
+    
+    @objc
+    public func presentVerticalOpenViewController(animated:Bool, completion:VerticalOpenVoidBlock?) {
+        guard let _ = self.presenting else { return }
+        guard canPresent == true      else { return }
+        guard isAnimated == false     else { return }
+        guard enablePresent == true   else { return }
+        guard isPresented == false    else { return }
+        guard percentComplete == 0    else { return }
+        
+        self.isAnimated = true
+        
+        presenting!.modalPresentationStyle = self.openPresentationStyle
+        presenting!.transitioningDelegate  = self
+        
+        self.target.present(presenting!, animated: animated) { completion?() }
+    }
+    
+    @objc
+    public func dismissVerticalOpenViewController() {
+        self.dismissVerticalOpenViewController(animated: true, completion: nil)
+    }
+    
+    @objc
+    public func dismissVerticalOpenViewController(animated:Bool) {
+        self.dismissVerticalOpenViewController(animated: animated, completion: nil)
+    }
+    
+    @objc
+    public func dismissVerticalOpenViewController(animated:Bool, completion:VerticalOpenVoidBlock?) {
+        guard let _ = self.presenting else { return }
+        guard canDismiss == true      else { return }
+        guard isAnimated == false     else { return }
+        guard enableDismiss == true   else { return }
+        guard isPresented == true     else { return }
+        guard percentComplete == 0    else { return }
+        
+        presenting!.modalPresentationStyle = self.openPresentationStyle
+        presenting!.transitioningDelegate  = self
+        
+        self.isAnimated = true
+        
+        presenting!.dismiss(animated: animated) { completion?() }
+    }
+    
     @objc public func setPresentCompletion(block:VerticalOpenVoidBlock?) { self.presentBlock = block }
     @objc public func setDismissCompletion(block:VerticalOpenVoidBlock?) { self.dismissBlock = block }
+    
 }
 
 private var maxOpenDistanceAssociatedKey: UInt8 = 0
@@ -432,6 +488,16 @@ extension UIView {
             return
         }
         self.removeFromSuperview()
+    }
+}
+
+class OpenVerticalSegue: UIStoryboardSegue {
+    
+    public weak var transition:VerticalOpenTransition?
+    
+    override func perform() {
+        guard let transition = self.transition else { return }
+        transition.presentVerticalOpenViewController(animated: true)
     }
 }
 

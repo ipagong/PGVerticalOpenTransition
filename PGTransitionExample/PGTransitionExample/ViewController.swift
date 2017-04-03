@@ -15,6 +15,7 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
     
     @IBOutlet weak var bottomMenu: UIView!
     @IBOutlet weak var bottomContents: UIView!
+    @IBOutlet weak var button: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,19 +28,18 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         openTransition!.lowerViews = [bottomContents, bottomMenu]
     }
     
-    func raiseViewsWith(transition:VerticalOpenTransition) -> Array<UIView>? {
-        if let naviBar = self.navigationController?.navigationBar {
-            return [naviBar]
-        }
-        return nil
-    }
-    
-    func lowerViewsWith(transition:VerticalOpenTransition) -> Array<UIView>? {
-        var views = [UIView]()
-        views.append(bottomContents)
-        views.append(bottomMenu)
-        return views
+    @IBAction func onClickButton(_ sender: Any) {
+        button.backgroundColor = (button.backgroundColor == .red ? .blue : .red)
     }
 
+    @IBAction func onClickOpenButton(_ sender: Any) {
+//        openTransition?.presentVerticalOpenViewController(animated: true)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let openSegue = segue as? OpenVerticalSegue {
+            openSegue.transition = self.openTransition
+        }
+    }
 }
 
