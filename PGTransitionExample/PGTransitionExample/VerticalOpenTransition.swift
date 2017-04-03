@@ -452,8 +452,12 @@ private var maxOpenDistanceAssociatedKey: UInt8 = 0
 
 extension UIView {
     fileprivate var maxOpenDistance:CGFloat! {
-        get { return objc_getAssociatedObject(self, &maxOpenDistanceAssociatedKey) as? CGFloat }
-        set(newValue) { objc_setAssociatedObject(self, &maxOpenDistanceAssociatedKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN) }
+        get {
+            return objc_getAssociatedObject(self, &maxOpenDistanceAssociatedKey) as? CGFloat
+        }
+        set(newValue) {
+            objc_setAssociatedObject(self, &maxOpenDistanceAssociatedKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN)
+        }
     }
     
     fileprivate func transitionAttachAt(_ willSuperView:UIView?, _ transformPoint:CGPoint? = CGPoint(x:0, y:0)) {

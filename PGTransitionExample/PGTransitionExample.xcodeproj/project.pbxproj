@@ -14,6 +14,7 @@
 		915732D41E8268BE00505D1A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 915732D31E8268BE00505D1A /* Assets.xcassets */; };
 		915732D71E8268BE00505D1A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 915732D51E8268BE00505D1A /* LaunchScreen.storyboard */; };
 		915732DF1E82708000505D1A /* VerticalOpenTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 915732DE1E82708000505D1A /* VerticalOpenTransition.swift */; };
+		91739AF51E9225F900F92DB6 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 91739AF41E9225F900F92DB6 /* MapKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		915732D61E8268BE00505D1A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		915732D81E8268BE00505D1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		915732DE1E82708000505D1A /* VerticalOpenTransition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VerticalOpenTransition.swift; sourceTree = "<group>"; };
+		91739AF41E9225F900F92DB6 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,6 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				91739AF51E9225F900F92DB6 /* MapKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +47,7 @@
 			children = (
 				915732CB1E8268BE00505D1A /* PGTransitionExample */,
 				915732CA1E8268BE00505D1A /* Products */,
+				91739AEF1E9224C800F92DB6 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -68,6 +72,14 @@
 				915732D81E8268BE00505D1A /* Info.plist */,
 			);
 			path = PGTransitionExample;
+			sourceTree = "<group>";
+		};
+		91739AEF1E9224C800F92DB6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				91739AF41E9225F900F92DB6 /* MapKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -103,6 +115,11 @@
 					915732C81E8268BE00505D1A = {
 						CreatedOnToolsVersion = 8.2.1;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Maps.iOS = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};

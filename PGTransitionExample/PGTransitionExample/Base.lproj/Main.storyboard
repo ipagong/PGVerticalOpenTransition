@@ -6,6 +6,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -44,6 +45,11 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dCc-Hs-qU3">
                                 <rect key="frame" x="0.0" y="189" width="375" height="478"/>
                                 <subviews>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="neL-T6-E3S">
+                                        <rect key="frame" x="0.0" y="0.0" width="375" height="478"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    </tableView>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5JQ-4O-c7S">
                                         <rect key="frame" x="36" y="31" width="303" height="90"/>
                                         <color key="backgroundColor" red="1" green="0.019891490399700618" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -80,6 +86,9 @@
                                     <segue destination="sLj-ZC-82w" kind="show" identifier="push" customClass="OpenVerticalSegue" customModule="PGTransitionExample" customModuleProvider="target" id="QLz-zW-wmX"/>
                                 </connections>
                             </button>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="cxZ-jl-YGH">
+                                <rect key="frame" x="0.0" y="60" width="375" height="128"/>
+                            </mapView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -87,8 +96,12 @@
                             <constraint firstAttribute="bottom" secondItem="8h8-uU-5mF" secondAttribute="bottom" id="C1e-bp-iWy"/>
                             <constraint firstAttribute="trailing" secondItem="dCc-Hs-qU3" secondAttribute="trailing" id="K7d-82-GYb"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="dCc-Hs-qU3" secondAttribute="bottom" id="NRw-E3-TZM"/>
+                            <constraint firstItem="dCc-Hs-qU3" firstAttribute="top" secondItem="cxZ-jl-YGH" secondAttribute="bottom" constant="1" id="PBm-6k-HZn"/>
                             <constraint firstItem="8h8-uU-5mF" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="SNa-Y0-0tH"/>
+                            <constraint firstItem="cxZ-jl-YGH" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="-16" id="bNL-g8-Hf4"/>
                             <constraint firstItem="dCc-Hs-qU3" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="125" id="kmY-Vb-awW"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="cxZ-jl-YGH" secondAttribute="trailing" constant="-16" id="tYW-lH-YKH"/>
+                            <constraint firstItem="cxZ-jl-YGH" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="-4" id="vIh-NA-voM"/>
                             <constraint firstItem="dCc-Hs-qU3" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="y9j-Hr-e7Y"/>
                         </constraints>
                     </view>
@@ -97,6 +110,7 @@
                         <outlet property="bottomContents" destination="dCc-Hs-qU3" id="k3i-QD-r8k"/>
                         <outlet property="bottomMenu" destination="8h8-uU-5mF" id="Zxr-Jl-vel"/>
                         <outlet property="button" destination="5JQ-4O-c7S" id="ByU-hu-Vyx"/>
+                        <outlet property="tableview" destination="neL-T6-E3S" id="3aN-qc-Qmc"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -106,7 +120,7 @@
         <!--Inner View Controller-->
         <scene sceneID="hbl-6l-g7O">
             <objects>
-                <viewController id="sLj-ZC-82w" customClass="InnerViewController" customModule="PGTransitionExample" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Detail" useStoryboardIdentifierAsRestorationIdentifier="YES" id="sLj-ZC-82w" customClass="InnerViewController" customModule="PGTransitionExample" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="89U-nf-yqW"/>
                         <viewControllerLayoutGuide type="bottom" id="0UD-Za-ZJ0"/>
@@ -114,12 +128,42 @@
                     <view key="view" contentMode="scaleToFill" id="Tfj-qs-8Oa">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" pitchEnabled="NO" showsUserLocation="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9NE-2i-2LL">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <color key="backgroundColor" red="0.0" green="0.14433013756816804" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <connections>
+                                    <outlet property="delegate" destination="sLj-ZC-82w" id="VQa-BT-NFO"/>
+                                </connections>
+                            </mapView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rih-q2-Zc2">
+                                <rect key="frame" x="36" y="567" width="303" height="80"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="80" id="zZo-DU-9KL"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                            </button>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="0UD-Za-ZJ0" firstAttribute="top" secondItem="9NE-2i-2LL" secondAttribute="bottom" id="0ZL-ba-5Ef"/>
+                            <constraint firstItem="0UD-Za-ZJ0" firstAttribute="top" secondItem="rih-q2-Zc2" secondAttribute="bottom" constant="20" id="DHu-L6-TEd"/>
+                            <constraint firstItem="9NE-2i-2LL" firstAttribute="top" secondItem="89U-nf-yqW" secondAttribute="bottom" constant="-20" id="FlR-yS-8tv"/>
+                            <constraint firstItem="9NE-2i-2LL" firstAttribute="leading" secondItem="Tfj-qs-8Oa" secondAttribute="leadingMargin" constant="-16" id="MyC-mh-2bh"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="rih-q2-Zc2" secondAttribute="trailing" constant="20" id="SS1-C3-5BA"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="9NE-2i-2LL" secondAttribute="trailing" constant="-16" id="Zo7-8p-CTs"/>
+                            <constraint firstItem="rih-q2-Zc2" firstAttribute="leading" secondItem="Tfj-qs-8Oa" secondAttribute="leadingMargin" constant="20" id="gpF-wg-VjM"/>
+                        </constraints>
                     </view>
+                    <nil key="simulatedTopBarMetrics"/>
+                    <connections>
+                        <outlet property="mapview" destination="9NE-2i-2LL" id="Nsl-GB-lJp"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="s68-Tn-iWq" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="530" y="123"/>
+            <point key="canvasLocation" x="528.79999999999995" y="122.78860569715144"/>
         </scene>
     </scenes>
 </document>
