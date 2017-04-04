@@ -76,19 +76,16 @@
                                     <constraint firstAttribute="height" constant="56" id="Wom-ul-dA1"/>
                                 </constraints>
                             </view>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dcn-GF-eNS">
-                                <rect key="frame" x="0.0" y="64" width="375" height="124"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" red="0.90739924634027558" green="1" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <state key="normal" title="open"/>
-                                <connections>
-                                    <action selector="onClickOpenButton:" destination="BYZ-38-t0r" eventType="touchUpInside" id="9Vm-uF-39j"/>
-                                    <segue destination="sLj-ZC-82w" kind="show" identifier="push" customClass="OpenVerticalSegue" customModule="PGTransitionExample" customModuleProvider="target" id="QLz-zW-wmX"/>
-                                </connections>
-                            </button>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="cxZ-jl-YGH">
                                 <rect key="frame" x="0.0" y="60" width="375" height="128"/>
                             </mapView>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dcn-GF-eNS">
+                                <rect key="frame" x="0.0" y="64" width="375" height="124"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <connections>
+                                    <segue destination="sLj-ZC-82w" kind="show" identifier="push" customClass="OpenVerticalSegue" customModule="PGTransitionExample" customModuleProvider="target" id="QLz-zW-wmX"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -110,6 +107,7 @@
                         <outlet property="bottomContents" destination="dCc-Hs-qU3" id="k3i-QD-r8k"/>
                         <outlet property="bottomMenu" destination="8h8-uU-5mF" id="Zxr-Jl-vel"/>
                         <outlet property="button" destination="5JQ-4O-c7S" id="ByU-hu-Vyx"/>
+                        <outlet property="mapView" destination="cxZ-jl-YGH" id="ZIE-wA-bCB"/>
                         <outlet property="tableview" destination="neL-T6-E3S" id="3aN-qc-Qmc"/>
                     </connections>
                 </viewController>
@@ -150,9 +148,9 @@
                             <constraint firstItem="0UD-Za-ZJ0" firstAttribute="top" secondItem="9NE-2i-2LL" secondAttribute="bottom" id="0ZL-ba-5Ef"/>
                             <constraint firstItem="0UD-Za-ZJ0" firstAttribute="top" secondItem="rih-q2-Zc2" secondAttribute="bottom" constant="20" id="DHu-L6-TEd"/>
                             <constraint firstItem="9NE-2i-2LL" firstAttribute="top" secondItem="89U-nf-yqW" secondAttribute="bottom" constant="-20" id="FlR-yS-8tv"/>
-                            <constraint firstItem="9NE-2i-2LL" firstAttribute="leading" secondItem="Tfj-qs-8Oa" secondAttribute="leadingMargin" constant="-16" id="MyC-mh-2bh"/>
+                            <constraint firstItem="9NE-2i-2LL" firstAttribute="leading" secondItem="Tfj-qs-8Oa" secondAttribute="leading" id="MyC-mh-2bh"/>
                             <constraint firstAttribute="trailingMargin" secondItem="rih-q2-Zc2" secondAttribute="trailing" constant="20" id="SS1-C3-5BA"/>
-                            <constraint firstAttribute="trailingMargin" secondItem="9NE-2i-2LL" secondAttribute="trailing" constant="-16" id="Zo7-8p-CTs"/>
+                            <constraint firstAttribute="trailing" secondItem="9NE-2i-2LL" secondAttribute="trailing" id="Zo7-8p-CTs"/>
                             <constraint firstItem="rih-q2-Zc2" firstAttribute="leading" secondItem="Tfj-qs-8Oa" secondAttribute="leadingMargin" constant="20" id="gpF-wg-VjM"/>
                         </constraints>
                     </view>
@@ -163,7 +161,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="s68-Tn-iWq" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="528.79999999999995" y="122.78860569715144"/>
+            <point key="canvasLocation" x="622" y="123"/>
         </scene>
     </scenes>
 </document>

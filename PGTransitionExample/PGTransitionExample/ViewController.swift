@@ -7,12 +7,14 @@
 //
 
 import UIKit
+import MapKit
 
 class ViewController: UIViewController, VerticalOpenTransitionDelegate {
 
     private var openTransition:VerticalOpenTransition?
     private var innerVc:InnerViewController?
     
+    @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var bottomMenu: UIView!
     @IBOutlet weak var bottomContents: UIView!
     @IBOutlet weak var button: UIButton!
@@ -21,17 +23,11 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        tableview.alwaysBounceVertical = false
+        
         innerVc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "Detail") as? InnerViewController
         
-        openTransition = VerticalOpenTransition(target: self, presenting: innerVc)
-        openTransition!.openDelegate = self
-        
-        if let naviBar = self.navigationController?.navigationBar {
-            openTransition!.raiseViews = [naviBar]
-        }
-        openTransition!.lowerViews = [bottomContents, bottomMenu]
-        
-        tableview.alwaysBounceVertical = false
+        updateTransitionViews()
     }
     
     @IBAction func onClickButton(_ sender: Any) {
@@ -42,6 +38,25 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         if let openSegue = segue as? OpenVerticalSegue {
             openSegue.transition = self.openTransition
         }
+    }
+    
+    func updateTransitionViews() {
+        
+        openTransition = VerticalOpenTransition(target: self, presenting: innerVc)
+        openTransition!.openDelegate = self
+        openTransition!.onCenterContent = true
+        
+        openTransition!.lowerViews = [bottomContents, bottomMenu]
+        guard let _ = navigationController?.navigationBar else { return }
+        openTransition!.raiseViews = [navigationController!.navigationBar]
+    }
+    
+    func originCenterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView! {
+        return self.mapView
+    }
+    
+    func destinationCnterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView! {
+        return self.innerVc!.mapview
     }
 }
 

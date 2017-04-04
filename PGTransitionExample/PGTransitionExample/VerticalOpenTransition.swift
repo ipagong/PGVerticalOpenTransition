@@ -21,6 +21,9 @@ public protocol VerticalOpenTransitionDelegate : NSObjectProtocol {
     
     @objc optional func verticalOpenTransitionPresentUpdated(transition:VerticalOpenTransition, updated:CGFloat) -> Void
     @objc optional func verticalOpenTransitionDismissUpdated(transition:VerticalOpenTransition, updated:CGFloat) -> Void
+    
+    @objc optional func originCenterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
+    @objc optional func destinationCnterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
 }
 
 /*
@@ -47,10 +50,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     public var dismissDuration:TimeInterval = 0.3
     
     public var onCenterContent:Bool = false //default false.
-    public var onDragging:Bool      = false //default false.
-    public var hasHalfSnapping:Bool = false //default false.
+    public var onCloseDragging:Bool = false //default false.
     public var dismissTouchHeight:CGFloat = 200.0
-    public var snapHeight:CGFloat   = 150.0
     
     public weak var openDelegate:VerticalOpenTransitionDelegate?
     
@@ -84,7 +85,17 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     }
     private var canDismiss:Bool { return self.openDelegate?.canDismissWith?(transition: self) ?? true }
     
-    private var maxDistance:CGFloat = 0
+    private var raiseMaxDistance:CGFloat = 0
+    private var lowerMaxDistance:CGFloat = 0
+    private var maxDistance:CGFloat { return raiseMaxDistance > lowerMaxDistance ? raiseMaxDistance : lowerMaxDistance }
+    private var fromCenterView:UIView? { return self.openDelegate?.originCenterViewWithVerticalOpen?(transition: self) }
+    private var toCenterView:UIView? { return self.openDelegate?.destinationCnterViewWithVerticalOpen?(transition: self) }
+    private var onCenterContentMode:Bool {
+        guard self.onCenterContent == true else { return false }
+        guard let _ = self.fromCenterView  else { return false }
+        guard let _ = self.toCenterView    else { return false }
+        return true
+    }
     
     @objc
     override init() { super.init() }
@@ -129,16 +140,17 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         guard let window = target.view.window else { return }
         
-        maxDistance = 0
+        raiseMaxDistance = 0
+        lowerMaxDistance = 0
         
         raiseViews?.forEach {
             $0.maxOpenDistance = $0.convert(CGPoint(x:0, y:$0.frame.height), to: window).y
-            if maxDistance < $0.maxOpenDistance { maxDistance = $0.maxOpenDistance }
+            if raiseMaxDistance < $0.maxOpenDistance { raiseMaxDistance = $0.maxOpenDistance }
         }
         
         lowerViews?.forEach {
             $0.maxOpenDistance = window.frame.height - $0.convert(CGPoint.zero, to: window).y
-            if maxDistance < $0.maxOpenDistance { maxDistance = $0.maxOpenDistance }
+            if lowerMaxDistance < $0.maxOpenDistance { lowerMaxDistance = $0.maxOpenDistance }
         }
     }
     
@@ -261,13 +273,26 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         if maxDistance == 0 { updateMaxDistance() }
         
+        let centerView = self.toCenterView?.addOpenTransitionSnapshotAt(to.view)
         let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
         let lowerSnapshots = self.lowerViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
+        
+        if self.onCenterContentMode == true {
+            centerView!.frame  = self.fromCenterView!.frame
+            centerView!.bounds = self.fromCenterView!.frame
+            centerView!.bounds.origin = CGPoint(x: self.toCenterView!.bounds.width/2  - self.fromCenterView!.frame.width/2,
+                                                y: self.toCenterView!.bounds.height/2 - self.fromCenterView!.frame.height/2)
+        }
         
         UIView.animate(withDuration: self.transitionDuration(using: context), animations: {
             
             raiseSnapshots?.forEach { $0.transitionAttachAt(nil, CGPoint(x:0 , y: -$0.maxOpenDistance)) }
             lowerSnapshots?.forEach { $0.transitionAttachAt(nil, CGPoint(x:0 , y:  $0.maxOpenDistance)) }
+
+            if self.onCenterContentMode == true {
+                centerView!.bounds = self.fromCenterView!.bounds
+                centerView!.frame  = self.fromCenterView!.frame
+            }
             
         }, completion: { _ in
             
@@ -277,9 +302,11 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
             self.raiseViews?.forEach { $0.alpha = 1 }
             self.lowerViews?.forEach { $0.alpha = 1 }
+            self.toCenterView?.alpha = 1
             
             raiseSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(from.view) }
             lowerSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(from.view) }
+            centerView?.removeFromSuperview()
             
             if canceled == true {
                 self.current = self.target
@@ -294,6 +321,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     private func dismissAnimation(from:UIViewController, to:UIViewController, container:UIView, context: UIViewControllerContextTransitioning) {
         
+        let centerView = self.toCenterView?.addOpenTransitionSnapshotAt(from.view)
         let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(from.view) })
         let lowerSnapshots = self.lowerViews?.flatMap({ $0.addOpenTransitionSnapshotAt(from.view) })
         
@@ -305,13 +333,22 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             raiseSnapshots?.forEach { $0.transitionAttachAt(nil, CGPoint(x:0 , y: 0)) }
             lowerSnapshots?.forEach { $0.transitionAttachAt(nil, CGPoint(x:0 , y: 0)) }
             
+            if self.onCenterContentMode == true {
+                centerView!.frame  = self.fromCenterView!.frame
+                centerView!.bounds = self.fromCenterView!.frame
+                centerView!.bounds.origin = CGPoint(x: self.toCenterView!.bounds.width/2  - self.fromCenterView!.frame.width/2,
+                                                    y: self.toCenterView!.bounds.height/2 - self.fromCenterView!.frame.height/2)
+            }
+            
         }, completion: { _ in
             
             self.raiseViews?.forEach { $0.alpha = 1 }
             self.lowerViews?.forEach { $0.alpha = 1 }
+            self.toCenterView?.alpha = 1
             
             raiseSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(to.view) }
             lowerSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(to.view) }
+            centerView?.removeFromSuperview()
             
             let canceled = context.transitionWasCancelled
             self.isAnimated = false
@@ -325,7 +362,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 context.completeTransition(true)
                 self.dismissBlock?()
             }
-            
         })
     }
     
@@ -471,7 +507,7 @@ extension UIView {
             return self
         }
         
-        guard let snapshot = self.snapshotView(afterScreenUpdates: true) else {
+        guard let snapshot = self.snapshotImageView() else {
             return nil
         }
         
@@ -492,6 +528,28 @@ extension UIView {
             return
         }
         self.removeFromSuperview()
+    }
+    
+    fileprivate func snapshotImageView() -> UIImageView? {
+        guard let image = self.snapshotImage() else { return nil }
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .center
+        return imageView
+    }
+    
+    fileprivate func snapshotImage() -> UIImage? {
+        
+        let size: CGSize = CGSize(width: floor(self.frame.size.width), height: floor(self.frame.size.height))
+        UIGraphicsBeginImageContextWithOptions(size, true, 0.0)
+        
+        if let context: CGContext = UIGraphicsGetCurrentContext() {
+            self.layer.render(in: context)
+        }
+        let snapshot: UIImage? = UIGraphicsGetImageFromCurrentImageContext()
+        
+        UIGraphicsEndImageContext()
+        
+        return snapshot
     }
 }
 
