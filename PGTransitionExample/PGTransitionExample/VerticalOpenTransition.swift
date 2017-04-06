@@ -16,22 +16,15 @@ public protocol VerticalOpenTransitionDelegate : NSObjectProtocol {
     @objc optional func canPresentWith(transition:VerticalOpenTransition) -> Bool
     @objc optional func canDismissWith(transition:VerticalOpenTransition) -> Bool
     
-    @objc optional func startPresentProcessWith(transition:VerticalOpenTransition, targetView:UIView) -> Bool
-    @objc optional func startDismissProcessWith(transition:VerticalOpenTransition, targetView:UIView) -> Bool
+    @objc optional func startPresentProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double
+    @objc optional func startDismissProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double
     
-    @objc optional func verticalOpenTransitionPresentUpdated(transition:VerticalOpenTransition, updated:CGFloat) -> Void
-    @objc optional func verticalOpenTransitionDismissUpdated(transition:VerticalOpenTransition, updated:CGFloat) -> Void
+    @objc optional func lockPresentVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat) -> Bool
+    @objc optional func lockDismissVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat) -> Bool
     
     @objc optional func initialCenterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
     @objc optional func destinationCnterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
 }
-
-/*
- TODO-LIST:
- - 각 뷰의 펼쳐짐 시점이 다르게 동작.
- - 컨텐트 뷰가 여백이 남아있는 경우 오므라들기.
- - 메소드, 필드 네이밍 다듬기.
- */
 
 @objc
 public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIViewControllerAnimatedTransitioning, UIViewControllerTransitioningDelegate, UIGestureRecognizerDelegate {
@@ -48,7 +41,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     public var dismissDuration:TimeInterval = 0.3
     
     public var onCenterContent:Bool = false //default false.
-    public var onCenterFade:Bool = true //default true.
+    public var onCenterFade:Bool    = true //default true.
     public var dismissTouchHeight:CGFloat = 200.0
     
     public weak var openDelegate:VerticalOpenTransitionDelegate?
@@ -73,7 +66,11 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     private var isAnimated:Bool     = false
     private var hasInteraction:Bool = false
+    private var didActionStart:Bool = false
+    private var didLocked:Bool?
+    
     private var beganPanPoint:CGPoint = .zero
+    private var eventPanPoint:CGPoint = .zero
     private var openPresentationStyle:UIModalPresentationStyle { return .custom }
     private var presentBlock:VerticalOpenVoidBlock?
     private var dismissBlock:VerticalOpenVoidBlock?
@@ -170,15 +167,22 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             if maxDistance == 0 { updateMaxDistance() }
             
             self.beganPanPoint = location
+            self.eventPanPoint = location
+            self.didLocked = nil
+            
             self.hasInteraction = true
             self.presentOpenAction()
             
         case .changed:
             
-            let mY = self.beganPanPoint.y - location.y
-            let percentage = abs(max(0,-mY) / maxDistance)
+            let mY = location.y - self.beganPanPoint.y
             
-            self.openDelegate?.verticalOpenTransitionPresentUpdated?(transition: self, updated: percentage)
+            if self.didLocked != false {
+                self.didLocked = self.openDelegate?.lockPresentVerticalOpenWith?(transition: self, distance: mY) ?? false
+                if self.didLocked == true { self.eventPanPoint = location }
+            }
+            
+            let percentage = ((location.y - self.eventPanPoint.y) / maxDistance)
             
             self.update(percentage)
             
@@ -190,7 +194,9 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             
             self.isAnimated = true
             
-            if (velocity.y > 0) {
+            if (self.didLocked == true) {
+                self.cancel()
+            } else if (velocity.y > 0) {
                 self.finish()
             } else {
                 self.cancel()
@@ -198,6 +204,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
 
             self.hasInteraction = false
             self.beganPanPoint  = .zero
+            self.eventPanPoint  = .zero
         default:
             break
         }
@@ -226,16 +233,23 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.hasInteraction = true
             
             self.beganPanPoint = location
+            self.eventPanPoint = location
+            self.didLocked = nil
+            
             self.dismissAction()
             
         case .changed:
             
             guard self.beganPanPoint.equalTo(.zero) == false else { return }
             
-            let mY = max(0, self.beganPanPoint.y - location.y)
-            let percentage = abs(mY / maxDistance)
+            let mY = self.beganPanPoint.y - location.y
             
-            self.openDelegate?.verticalOpenTransitionDismissUpdated?(transition: self, updated: percentage)
+            if self.didLocked != false {
+                self.didLocked = self.openDelegate?.lockDismissVerticalOpenWith?(transition: self, distance: mY) ?? false
+                if self.didLocked == true { self.eventPanPoint = location }
+            }
+            
+            let percentage = ((self.eventPanPoint.y - location.y) / maxDistance)
             
             self.update(percentage)
             
@@ -249,16 +263,17 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             
             self.isAnimated = true
             
-            if (velocity.y < 0) {
+            if (self.didLocked == true) {
+                self.cancel()
+            } else if (velocity.y < 0) {
                 self.finish()
-                self.current = self.target
             } else {
                 self.cancel()
-                self.current = self.presenting!
             }
             
             self.hasInteraction = false
             self.beganPanPoint  = .zero
+            self.eventPanPoint  = .zero
             
         default:
             break
@@ -289,8 +304,13 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: { initCenterSnapShot!.alpha = 0 })
             }
             
-            raiseSnapshots?.forEach { $0.transform = CGAffineTransform(translationX: 0, y: -$0.maxOpenDistance) }
-            lowerSnapshots?.forEach { $0.transform = CGAffineTransform(translationX: 0, y:  $0.maxOpenDistance) }
+            raiseSnapshots?.forEach {
+                self.presentTransform(view: $0, viewTransform: { $0.transform = CGAffineTransform(translationX: 0, y: -$0.maxOpenDistance) })
+            }
+
+            lowerSnapshots?.forEach {
+                self.presentTransform(view: $0, viewTransform: { $0.transform = CGAffineTransform(translationX: 0, y: $0.maxOpenDistance) })
+            }
             
             if self.onCenterContentMode == true {
                 if (self.onCenterFade == true) { initCenterSnapShot!.frame = originToCenterFrame! }
@@ -327,6 +347,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 context.completeTransition(true)
                 self.presentBlock?()
             }
+            
+            self.didActionStart = false
         })
     }
     
@@ -351,8 +373,13 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 UIView.addKeyframe(withRelativeStartTime: 0.8, relativeDuration: 1, animations: { initCenterSnapshot?.alpha = 1 })
             }
             
-            raiseSnapshots?.forEach { $0.transform = CGAffineTransform(translationX: 0, y: 0) }
-            lowerSnapshots?.forEach { $0.transform = CGAffineTransform(translationX: 0, y: 0) }
+            raiseSnapshots?.forEach {
+                self.dismissTransform(view: $0, viewTransform: { $0.transform = CGAffineTransform(translationX: 0, y: 0) })
+            }
+            
+            lowerSnapshots?.forEach {
+                self.dismissTransform(view: $0, viewTransform: { $0.transform = CGAffineTransform(translationX: 0, y: 0) })
+            }
             
             if self.onCenterContentMode == true {
                 initCenterSnapshot!.frame  = self.initialCenterView!.frame
@@ -386,14 +413,19 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 context.completeTransition(true)
                 self.dismissBlock?()
             }
+            
+            self.didActionStart = false
         })
     }
     
     private func presentOpenAction() {
-        guard let _ = presenting    else { return }
-        guard canPresent == true    else { return }
-        guard enablePresent == true else { return }
-        guard percentComplete == 0  else { return }
+        guard let _ = presenting      else { return }
+        guard canPresent == true      else { return }
+        guard enablePresent == true   else { return }
+        guard percentComplete == 0    else { return }
+        guard didActionStart == false else { return }
+        
+        self.didActionStart = true
         
         presenting!.modalPresentationStyle = self.openPresentationStyle
         presenting!.transitioningDelegate  = self
@@ -405,10 +437,52 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         guard canDismiss == true    else { return }
         guard enableDismiss == true else { return }
         guard percentComplete == 0  else { return }
+        guard didActionStart == false else { return }
+        
+        self.didActionStart = true
         
         presenting!.dismiss(animated: true, completion: nil)
     }
     
+    override public func finish() {
+        guard didActionStart else { return }
+        super.finish()
+    }
+    
+    override public func cancel() {
+        guard didActionStart else { return }
+        super.cancel()
+    }
+    
+    private func presentTransform(view:UIView, viewTransform:@escaping (UIView) -> (Void)) {
+        var startTime:Double = 0
+        
+        if let snapshot = view as? OpenVerticalSnapshotView {
+            startTime = self.openDelegate?.startPresentProcessWith?(transition: self, targetView: snapshot.targetView) ?? 0
+        } else {
+            startTime = self.openDelegate?.startPresentProcessWith?(transition: self, targetView: view) ?? 0
+        }
+        
+        UIView.addKeyframe(withRelativeStartTime: startTime, relativeDuration: 1, animations: {
+            viewTransform(view)
+        })
+    }
+    
+    
+    private func dismissTransform(view:UIView, viewTransform:@escaping (UIView) -> (Void)) {
+        var startTime:Double = 0
+        
+        if let snapshot = view as? OpenVerticalSnapshotView {
+            startTime = self.openDelegate?.startDismissProcessWith?(transition: self, targetView: snapshot.targetView) ?? 0
+        } else {
+            startTime = self.openDelegate?.startDismissProcessWith?(transition: self, targetView: view) ?? 0
+        }
+        
+        UIView.addKeyframe(withRelativeStartTime: startTime, relativeDuration: 1, animations: {
+            viewTransform(view)
+        })
+    }
+
     //MARK: - UIVieControllerTransitioningDelegate methods
     
     public func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
@@ -505,7 +579,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     @objc public func setPresentCompletion(block:VerticalOpenVoidBlock?) { self.presentBlock = block }
     @objc public func setDismissCompletion(block:VerticalOpenVoidBlock?) { self.dismissBlock = block }
-    
 }
 
 private var maxOpenDistanceAssociatedKey: UInt8 = 0
@@ -522,7 +595,7 @@ extension UIView {
             return self
         }
         
-        guard let snapshot = self.snapshotImageView() else { return nil }
+        guard let snapshot = OpenVerticalSnapshotView.createWith(self) else { return nil }
         
         if let _ = self.maxOpenDistance { snapshot.maxOpenDistance = self.maxOpenDistance }
         
@@ -546,13 +619,6 @@ extension UIView {
 }
 
 extension UIView {
-    fileprivate func snapshotImageView() -> UIImageView? {
-        guard let image = self.snapshotImage() else { return nil }
-        let imageView = UIImageView(image: image)
-        imageView.contentMode = .center
-        return imageView
-    }
-    
     fileprivate func snapshotImage() -> UIImage? {
         let size = CGSize(width:  floor(self.frame.size.width),
                           height: floor(self.frame.size.height))
@@ -561,6 +627,20 @@ extension UIView {
         let snapshot = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         return snapshot
+    }
+}
+
+class OpenVerticalSnapshotView: UIImageView {
+    
+    public weak var targetView:UIView?
+    
+    static func createWith(_ view:UIView!) -> OpenVerticalSnapshotView? {
+        guard let image = view.snapshotImage() else { return nil }
+        
+        let snapShotview = OpenVerticalSnapshotView(image:image)
+        snapShotview.targetView = view
+        
+        return snapShotview
     }
 }
 

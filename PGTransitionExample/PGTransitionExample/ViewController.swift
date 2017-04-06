@@ -58,5 +58,25 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
     func destinationCnterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView! {
         return self.innerVc!.mapview
     }
+    
+    func lockPresentVerticalOpenWith(transition: VerticalOpenTransition, distance: CGFloat) -> Bool {
+        return false
+    }
+    
+    func lockDismissVerticalOpenWith(transition: VerticalOpenTransition, distance: CGFloat) -> Bool {
+        return false
+    }
+    
+    func startPresentProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double {
+        if (targetView == self.navigationController?.navigationBar) { return 0.6 }
+        if (targetView == self.bottomMenu) { return 0.6 }
+        return 0
+    }
+    
+    func startDismissProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double {
+        if (targetView == self.navigationController?.navigationBar) { return 0.4 }
+        if (targetView == self.bottomMenu) { return 0.4 }
+        return 0
+    }
 }
 
