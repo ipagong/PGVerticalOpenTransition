@@ -34,13 +34,12 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let openSegue = segue as? OpenVerticalSegue {
+        if let openSegue = segue as? VerticalOpenSegue {
             openSegue.transition = self.openTransition
         }
     }
     
     func updateTransitionViews() {
-        
         openTransition = VerticalOpenTransition(target: self, presenting: innerVc)
         openTransition!.openDelegate = self
         openTransition!.onCenterContent = true
@@ -59,11 +58,18 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         return self.innerVc!.mapview
     }
     
-    func lockPresentVerticalOpenWith(transition: VerticalOpenTransition, distance: CGFloat) -> Bool {
+    func lockPresentVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool {
+        if (self.bottomContents.transform.ty < 0 || distance < 0) {
+            let maxValue = abs(bottomContents.frame.height - bottomContents.maxOpenDistance)
+            self.bottomContents.transform = CGAffineTransform(translationX: 0, y: max(distance, -maxValue))
+            
+            debugPrint("\(maxValue), \(distance)")
+            return true
+        }
         return false
     }
     
-    func lockDismissVerticalOpenWith(transition: VerticalOpenTransition, distance: CGFloat) -> Bool {
+    func lockDismissVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool {
         return false
     }
     

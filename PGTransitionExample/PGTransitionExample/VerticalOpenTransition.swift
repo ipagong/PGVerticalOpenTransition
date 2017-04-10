@@ -13,17 +13,25 @@ public typealias VerticalOpenVoidBlock = () -> ()
 
 @objc
 public protocol VerticalOpenTransitionDelegate : NSObjectProtocol {
-    @objc optional func canPresentWith(transition:VerticalOpenTransition) -> Bool
-    @objc optional func canDismissWith(transition:VerticalOpenTransition) -> Bool
+    @objc optional
+    func canPresentWith(transition:VerticalOpenTransition) -> Bool
+    @objc optional
+    func canDismissWith(transition:VerticalOpenTransition) -> Bool
     
-    @objc optional func startPresentProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double
-    @objc optional func startDismissProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double
+    @objc optional
+    func startPresentProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double
+    @objc optional
+    func startDismissProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double
     
-    @objc optional func lockPresentVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat) -> Bool
-    @objc optional func lockDismissVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat) -> Bool
+    @objc optional
+    func lockPresentVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool
+    @objc optional
+    func lockDismissVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool
     
-    @objc optional func initialCenterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
-    @objc optional func destinationCnterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
+    @objc optional
+    func initialCenterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
+    @objc optional
+    func destinationCnterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
 }
 
 @objc
@@ -67,10 +75,13 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     private var isAnimated:Bool     = false
     private var hasInteraction:Bool = false
     private var didActionStart:Bool = false
-    private var didLocked:Bool?
+    private var didLocked:Bool? {
+        willSet {
+            if newValue == true && didLocked == false { self.cancel() }
+        }
+    }
     
     private var beganPanPoint:CGPoint = .zero
-    private var eventPanPoint:CGPoint = .zero
     private var openPresentationStyle:UIModalPresentationStyle { return .custom }
     private var presentBlock:VerticalOpenVoidBlock?
     private var dismissBlock:VerticalOpenVoidBlock?
@@ -92,9 +103,14 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         return true
     }
     
+    private var onCenterFadeMode:Bool {
+        guard onCenterContentMode == true else { return false }
+        return onCenterFade
+    }
+    
     @objc
     override init() { super.init() }
-        
+    
     @objc
     public init(target:UIViewController!) {
         super.init()
@@ -160,6 +176,13 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         let location = gesture.location(in: window)
         let velocity = gesture.velocity(in: window)
+
+        didLocked = self.openDelegate?.lockPresentVerticalOpenWith?(transition: self,
+                                                                    distance: location.y - self.beganPanPoint.y,
+                                                                    velocity: velocity,
+                                                                    state: gesture.state)
+        
+        if gesture.state != .began && didLocked == true { return }
         
         switch gesture.state {
         case .began:
@@ -167,22 +190,14 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             if maxDistance == 0 { updateMaxDistance() }
             
             self.beganPanPoint = location
-            self.eventPanPoint = location
             self.didLocked = nil
             
             self.hasInteraction = true
-            self.presentOpenAction()
             
         case .changed:
+            self.presentOpenAction()
             
-            let mY = location.y - self.beganPanPoint.y
-            
-            if self.didLocked != false {
-                self.didLocked = self.openDelegate?.lockPresentVerticalOpenWith?(transition: self, distance: mY) ?? false
-                if self.didLocked == true { self.eventPanPoint = location }
-            }
-            
-            let percentage = ((location.y - self.eventPanPoint.y) / maxDistance)
+            let percentage = ((location.y - self.beganPanPoint.y) / maxDistance)
             
             self.update(percentage)
             
@@ -204,7 +219,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
 
             self.hasInteraction = false
             self.beganPanPoint  = .zero
-            self.eventPanPoint  = .zero
         default:
             break
         }
@@ -222,6 +236,13 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         let location = gesture.location(in: window)
         let velocity = gesture.velocity(in: window)
         
+        didLocked = self.openDelegate?.lockDismissVerticalOpenWith?(transition: self,
+                                                                    distance: self.beganPanPoint.y - location.y,
+                                                                    velocity: velocity,
+                                                                    state: gesture.state)
+        
+        if gesture.state != .began && didLocked == true { return }
+        
         switch gesture.state {
         case .began:
             
@@ -233,23 +254,15 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.hasInteraction = true
             
             self.beganPanPoint = location
-            self.eventPanPoint = location
             self.didLocked = nil
-            
-            self.dismissAction()
             
         case .changed:
             
+            self.dismissAction()
+            
             guard self.beganPanPoint.equalTo(.zero) == false else { return }
             
-            let mY = self.beganPanPoint.y - location.y
-            
-            if self.didLocked != false {
-                self.didLocked = self.openDelegate?.lockDismissVerticalOpenWith?(transition: self, distance: mY) ?? false
-                if self.didLocked == true { self.eventPanPoint = location }
-            }
-            
-            let percentage = ((self.eventPanPoint.y - location.y) / maxDistance)
+            let percentage = (self.beganPanPoint.y - location.y) / maxDistance
             
             self.update(percentage)
             
@@ -273,7 +286,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             
             self.hasInteraction = false
             self.beganPanPoint  = .zero
-            self.eventPanPoint  = .zero
             
         default:
             break
@@ -286,10 +298,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         if maxDistance == 0 { updateMaxDistance() }
 
-        let initCenterSnapShot = (self.onCenterFade == true ? self.initialCenterView?.addOpenTransitionSnapshotAt(to.view, contentMode: .scaleAspectFill) : nil)
+        let initCenterSnapShot = (self.onCenterFadeMode == true ? self.initialCenterView?.addOpenTransitionSnapshotAt(to.view, contentMode: .scaleAspectFill) : nil)
         
-        let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
         let lowerSnapshots = self.lowerViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
+        let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
         
         let originToCenterFrame:CGRect?  = self.destinationCenterView?.frame
         let originToCenterBounds:CGRect? = self.destinationCenterView?.bounds
@@ -300,7 +312,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         UIView.animateKeyframes(withDuration: self.transitionDuration(using: context), delay: 0, options: [], animations: {
             
-            if (self.onCenterFade == true) {
+            if (self.onCenterFadeMode == true) {
                 UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: { initCenterSnapShot!.alpha = 0 })
             }
             
@@ -313,7 +325,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             }
             
             if self.onCenterContentMode == true {
-                if (self.onCenterFade == true) { initCenterSnapShot!.frame = originToCenterFrame! }
+                if (self.onCenterFadeMode == true) { initCenterSnapShot!.frame = originToCenterFrame! }
                 
                 self.destinationCenterView!.frame  = originToCenterFrame!
                 self.destinationCenterView!.bounds = originToCenterBounds!
@@ -356,8 +368,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         let destCenterSnapShot = self.destinationCenterView?.addOpenTransitionSnapshotAt(from.view)
         let initCenterSnapshot = self.initialCenterView?.addOpenTransitionSnapshotAt(from.view, contentMode: .scaleAspectFill)
-        let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(from.view) })
         let lowerSnapshots = self.lowerViews?.flatMap({ $0.addOpenTransitionSnapshotAt(from.view) })
+        let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(from.view) })
         
         raiseSnapshots?.forEach { $0.transform = CGAffineTransform(translationX: 0, y: -$0.maxOpenDistance) }
         lowerSnapshots?.forEach { $0.transform = CGAffineTransform(translationX: 0, y:  $0.maxOpenDistance) }
@@ -369,7 +381,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         UIView.animateKeyframes(withDuration: self.transitionDuration(using: context), delay: 0, options: [], animations: {
             
-            if (self.onCenterFade == true) {
+            if (self.onCenterFadeMode == true) {
                 UIView.addKeyframe(withRelativeStartTime: 0.8, relativeDuration: 1, animations: { initCenterSnapshot?.alpha = 1 })
             }
             
@@ -457,7 +469,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     private func presentTransform(view:UIView, viewTransform:@escaping (UIView) -> (Void)) {
         var startTime:Double = 0
         
-        if let snapshot = view as? OpenVerticalSnapshotView {
+        if let snapshot = view as? VerticalOpenSnapshotView {
             startTime = self.openDelegate?.startPresentProcessWith?(transition: self, targetView: snapshot.targetView) ?? 0
         } else {
             startTime = self.openDelegate?.startPresentProcessWith?(transition: self, targetView: view) ?? 0
@@ -472,7 +484,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     private func dismissTransform(view:UIView, viewTransform:@escaping (UIView) -> (Void)) {
         var startTime:Double = 0
         
-        if let snapshot = view as? OpenVerticalSnapshotView {
+        if let snapshot = view as? VerticalOpenSnapshotView {
             startTime = self.openDelegate?.startDismissProcessWith?(transition: self, targetView: snapshot.targetView) ?? 0
         } else {
             startTime = self.openDelegate?.startDismissProcessWith?(transition: self, targetView: view) ?? 0
@@ -584,7 +596,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
 private var maxOpenDistanceAssociatedKey: UInt8 = 0
 
 extension UIView {
-    fileprivate var maxOpenDistance:CGFloat! {
+    public var maxOpenDistance:CGFloat! {
         get { return objc_getAssociatedObject(self, &maxOpenDistanceAssociatedKey) as? CGFloat }
         set(newValue) { objc_setAssociatedObject(self, &maxOpenDistanceAssociatedKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN) }
     }
@@ -595,7 +607,7 @@ extension UIView {
             return self
         }
         
-        guard let snapshot = OpenVerticalSnapshotView.createWith(self) else { return nil }
+        guard let snapshot = VerticalOpenSnapshotView.createWith(self) else { return nil }
         
         if let _ = self.maxOpenDistance { snapshot.maxOpenDistance = self.maxOpenDistance }
         
@@ -630,21 +642,21 @@ extension UIView {
     }
 }
 
-class OpenVerticalSnapshotView: UIImageView {
+class VerticalOpenSnapshotView: UIImageView {
     
     public weak var targetView:UIView?
     
-    static func createWith(_ view:UIView!) -> OpenVerticalSnapshotView? {
+    static func createWith(_ view:UIView!) -> VerticalOpenSnapshotView? {
         guard let image = view.snapshotImage() else { return nil }
         
-        let snapShotview = OpenVerticalSnapshotView(image:image)
+        let snapShotview = VerticalOpenSnapshotView(image:image)
         snapShotview.targetView = view
         
         return snapShotview
     }
 }
 
-public class OpenVerticalSegue: UIStoryboardSegue {
+public class VerticalOpenSegue: UIStoryboardSegue {
     public weak var transition:VerticalOpenTransition?
     
     override public func perform() {
