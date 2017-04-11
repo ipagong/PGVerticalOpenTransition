@@ -294,7 +294,11 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     
     private func presentAnimation(from:UIViewController, to:UIViewController, container:UIView, context: UIViewControllerContextTransitioning) {
+        
         container.addSubview(to.view)
+        
+        to.view.setNeedsLayout()
+        to.view.layoutIfNeeded()
         
         if maxDistance == 0 { updateMaxDistance() }
 
@@ -466,6 +470,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         super.cancel()
     }
     
+    override public func update(_ percentComplete: CGFloat) {
+        super.update(max(0+0.0001, min(1-0.0001, percentComplete)))
+    }
+    
     private func presentTransform(view:UIView, viewTransform:@escaping (UIView) -> (Void)) {
         var startTime:Double = 0
         
@@ -627,41 +635,6 @@ extension UIView {
             return
         }
         self.removeFromSuperview()
-    }
-}
-
-extension UIView {
-    fileprivate func snapshotImage() -> UIImage? {
-        let size = CGSize(width:  floor(self.frame.size.width),
-                          height: floor(self.frame.size.height))
-        UIGraphicsBeginImageContextWithOptions(size, true, 0.0)
-        if let context = UIGraphicsGetCurrentContext() { self.layer.render(in: context) }
-        let snapshot = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return snapshot
-    }
-}
-
-class VerticalOpenSnapshotView: UIImageView {
-    
-    public weak var targetView:UIView?
-    
-    static func createWith(_ view:UIView!) -> VerticalOpenSnapshotView? {
-        guard let image = view.snapshotImage() else { return nil }
-        
-        let snapShotview = VerticalOpenSnapshotView(image:image)
-        snapShotview.targetView = view
-        
-        return snapShotview
-    }
-}
-
-public class VerticalOpenSegue: UIStoryboardSegue {
-    public weak var transition:VerticalOpenTransition?
-    
-    override public func perform() {
-        guard let transition = self.transition else { return }
-        transition.presentVerticalOpenViewController(animated: true)
     }
 }
 

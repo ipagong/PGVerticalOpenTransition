@@ -9,21 +9,24 @@
 /* Begin PBXBuildFile section */
 		912792281E9B2755007E2D20 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912792271E9B2755007E2D20 /* DetailViewController.swift */; };
 		9127922A1E9B27CC007E2D20 /* SimpleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912792291E9B27CC007E2D20 /* SimpleViewController.swift */; };
-		912792301E9B29E8007E2D20 /* CellOpenTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9127922F1E9B29E8007E2D20 /* CellOpenTableViewController.swift */; };
+		912792391E9B8719007E2D20 /* VerticalOpenSegue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912792361E9B8719007E2D20 /* VerticalOpenSegue.swift */; };
+		9127923A1E9B8719007E2D20 /* VerticalOpenSnapshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912792371E9B8719007E2D20 /* VerticalOpenSnapshotView.swift */; };
+		9127923B1E9B8719007E2D20 /* VerticalOpenTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912792381E9B8719007E2D20 /* VerticalOpenTransition.swift */; };
 		9151D1C71E8A56CF008FB5CD /* InnerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9151D1C61E8A56CF008FB5CD /* InnerViewController.swift */; };
 		915732CD1E8268BE00505D1A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 915732CC1E8268BE00505D1A /* AppDelegate.swift */; };
 		915732CF1E8268BE00505D1A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 915732CE1E8268BE00505D1A /* ViewController.swift */; };
 		915732D21E8268BE00505D1A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 915732D01E8268BE00505D1A /* Main.storyboard */; };
 		915732D41E8268BE00505D1A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 915732D31E8268BE00505D1A /* Assets.xcassets */; };
 		915732D71E8268BE00505D1A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 915732D51E8268BE00505D1A /* LaunchScreen.storyboard */; };
-		915732DF1E82708000505D1A /* VerticalOpenTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 915732DE1E82708000505D1A /* VerticalOpenTransition.swift */; };
 		91739AF51E9225F900F92DB6 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 91739AF41E9225F900F92DB6 /* MapKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		912792271E9B2755007E2D20 /* DetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 		912792291E9B27CC007E2D20 /* SimpleViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleViewController.swift; sourceTree = "<group>"; };
-		9127922F1E9B29E8007E2D20 /* CellOpenTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CellOpenTableViewController.swift; sourceTree = "<group>"; };
+		912792361E9B8719007E2D20 /* VerticalOpenSegue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = VerticalOpenSegue.swift; path = ../../Pod/Classes/VerticalOpenSegue.swift; sourceTree = "<group>"; };
+		912792371E9B8719007E2D20 /* VerticalOpenSnapshotView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = VerticalOpenSnapshotView.swift; path = ../../Pod/Classes/VerticalOpenSnapshotView.swift; sourceTree = "<group>"; };
+		912792381E9B8719007E2D20 /* VerticalOpenTransition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = VerticalOpenTransition.swift; path = ../../Pod/Classes/VerticalOpenTransition.swift; sourceTree = "<group>"; };
 		9151D1C61E8A56CF008FB5CD /* InnerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InnerViewController.swift; sourceTree = "<group>"; };
 		915732C91E8268BE00505D1A /* PGTransitionExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PGTransitionExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		915732CC1E8268BE00505D1A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -32,7 +35,6 @@
 		915732D31E8268BE00505D1A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		915732D61E8268BE00505D1A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		915732D81E8268BE00505D1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		915732DE1E82708000505D1A /* VerticalOpenTransition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VerticalOpenTransition.swift; sourceTree = "<group>"; };
 		91739AF41E9225F900F92DB6 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -48,9 +50,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		912792351E9B8701007E2D20 /* Vender */ = {
+			isa = PBXGroup;
+			children = (
+				912792361E9B8719007E2D20 /* VerticalOpenSegue.swift */,
+				912792371E9B8719007E2D20 /* VerticalOpenSnapshotView.swift */,
+				912792381E9B8719007E2D20 /* VerticalOpenTransition.swift */,
+			);
+			name = Vender;
+			path = PGTransitionExample;
+			sourceTree = "<group>";
+		};
 		915732C01E8268BD00505D1A = {
 			isa = PBXGroup;
 			children = (
+				912792351E9B8701007E2D20 /* Vender */,
 				915732CB1E8268BE00505D1A /* PGTransitionExample */,
 				915732CA1E8268BE00505D1A /* Products */,
 				91739AEF1E9224C800F92DB6 /* Frameworks */,
@@ -72,9 +86,7 @@
 				915732CE1E8268BE00505D1A /* ViewController.swift */,
 				9151D1C61E8A56CF008FB5CD /* InnerViewController.swift */,
 				912792291E9B27CC007E2D20 /* SimpleViewController.swift */,
-				9127922F1E9B29E8007E2D20 /* CellOpenTableViewController.swift */,
 				912792271E9B2755007E2D20 /* DetailViewController.swift */,
-				915732DE1E82708000505D1A /* VerticalOpenTransition.swift */,
 				915732D01E8268BE00505D1A /* Main.storyboard */,
 				915732D31E8268BE00505D1A /* Assets.xcassets */,
 				915732D51E8268BE00505D1A /* LaunchScreen.storyboard */,
@@ -169,11 +181,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				915732CF1E8268BE00505D1A /* ViewController.swift in Sources */,
-				912792301E9B29E8007E2D20 /* CellOpenTableViewController.swift in Sources */,
-				915732DF1E82708000505D1A /* VerticalOpenTransition.swift in Sources */,
 				9127922A1E9B27CC007E2D20 /* SimpleViewController.swift in Sources */,
 				915732CD1E8268BE00505D1A /* AppDelegate.swift in Sources */,
+				9127923A1E9B8719007E2D20 /* VerticalOpenSnapshotView.swift in Sources */,
+				912792391E9B8719007E2D20 /* VerticalOpenSegue.swift in Sources */,
 				9151D1C71E8A56CF008FB5CD /* InnerViewController.swift in Sources */,
+				9127923B1E9B8719007E2D20 /* VerticalOpenTransition.swift in Sources */,
 				912792281E9B2755007E2D20 /* DetailViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -240,7 +253,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -283,7 +296,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";

@@ -25,7 +25,7 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         
         tableview.alwaysBounceVertical = false
         
-        innerVc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "Detail") as? InnerViewController
+        innerVc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "Inner") as? InnerViewController
         updateTransitionViews()
     }
     
@@ -59,13 +59,6 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
     }
     
     func lockPresentVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool {
-        if (self.bottomContents.transform.ty < 0 || distance < 0) {
-            let maxValue = abs(bottomContents.frame.height - bottomContents.maxOpenDistance)
-            self.bottomContents.transform = CGAffineTransform(translationX: 0, y: max(distance, -maxValue))
-            
-            debugPrint("\(maxValue), \(distance)")
-            return true
-        }
         return false
     }
     

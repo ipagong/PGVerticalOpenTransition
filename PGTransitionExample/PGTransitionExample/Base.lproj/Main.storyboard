@@ -48,10 +48,12 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dCc-Hs-qU3">
                                 <rect key="frame" x="0.0" y="189" width="375" height="603"/>
                                 <subviews>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="neL-T6-E3S">
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="neL-T6-E3S">
                                         <rect key="frame" x="0.0" y="0.0" width="375" height="478"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="478" id="DZE-jt-xTB"/>
+                                        </constraints>
                                     </tableView>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5JQ-4O-c7S">
                                         <rect key="frame" x="36" y="31" width="303" height="90"/>
@@ -67,8 +69,11 @@
                                 </subviews>
                                 <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
+                                    <constraint firstItem="neL-T6-E3S" firstAttribute="top" secondItem="dCc-Hs-qU3" secondAttribute="top" id="74u-cO-Xil"/>
                                     <constraint firstItem="5JQ-4O-c7S" firstAttribute="leading" secondItem="dCc-Hs-qU3" secondAttribute="leading" constant="36" id="OI9-wL-xlp"/>
                                     <constraint firstAttribute="trailing" secondItem="5JQ-4O-c7S" secondAttribute="trailing" constant="36" id="StM-z4-sxk"/>
+                                    <constraint firstAttribute="trailing" secondItem="neL-T6-E3S" secondAttribute="trailing" id="c1o-N3-dOm"/>
+                                    <constraint firstItem="neL-T6-E3S" firstAttribute="leading" secondItem="dCc-Hs-qU3" secondAttribute="leading" id="hnS-e4-rrY"/>
                                     <constraint firstItem="5JQ-4O-c7S" firstAttribute="top" secondItem="dCc-Hs-qU3" secondAttribute="top" constant="31" id="w1b-a9-Eud"/>
                                 </constraints>
                             </view>
@@ -83,7 +88,7 @@
                                 <rect key="frame" x="0.0" y="64" width="375" height="124"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <connections>
-                                    <segue destination="sLj-ZC-82w" kind="show" identifier="push" customClass="VerticalOpenSegue" customModule="PGTransitionExample" customModuleProvider="target" id="QLz-zW-wmX"/>
+                                    <segue destination="sLj-ZC-82w" kind="custom" identifier="open" customClass="VerticalOpenSegue" customModule="PGTransitionExample" customModuleProvider="target" animates="NO" id="1T6-QF-BkU"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -165,7 +170,7 @@
                                     <color key="titleColor" cocoaTouchSystemColor="darkTextColor"/>
                                 </state>
                                 <connections>
-                                    <segue destination="pH2-Qo-N3R" kind="show" identifier="open" customClass="VerticalOpenSegue" customModule="PGTransitionExample" customModuleProvider="target" id="pjA-Xa-9IY"/>
+                                    <segue destination="pH2-Qo-N3R" kind="custom" identifier="open" customClass="VerticalOpenSegue" customModule="PGTransitionExample" customModuleProvider="target" animates="NO" id="pjA-Xa-9IY"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -304,7 +309,7 @@
         <!--Inner View Controller-->
         <scene sceneID="hbl-6l-g7O">
             <objects>
-                <viewController storyboardIdentifier="Detail" useStoryboardIdentifierAsRestorationIdentifier="YES" id="sLj-ZC-82w" customClass="InnerViewController" customModule="PGTransitionExample" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Inner" useStoryboardIdentifierAsRestorationIdentifier="YES" id="sLj-ZC-82w" customClass="InnerViewController" customModule="PGTransitionExample" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="89U-nf-yqW"/>
                         <viewControllerLayoutGuide type="bottom" id="0UD-Za-ZJ0"/>
