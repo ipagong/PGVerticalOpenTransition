@@ -1,6 +1,11 @@
 # Vertical Open Transition 
 
-You can 
+it's vertical dragging open transition.
+it has two view contents (raiseViews & lowerViews)
+
+you can use simply this transition after setup some parameters.
+
+(please, check example code. )
 
 # Installation with CocoaPods
 
