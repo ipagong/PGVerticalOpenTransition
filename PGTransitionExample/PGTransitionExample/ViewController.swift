@@ -43,7 +43,7 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         openTransition = VerticalOpenTransition(target: self, presenting: innerVc)
         openTransition!.openDelegate = self
         openTransition!.onCenterContent = true
-        openTransition!.onCenterFade = true
+        openTransition!.onCenterFade = false
         
         openTransition!.lowerViews = [bottomContents, bottomMenu]
         guard let _ = navigationController?.navigationBar else { return }

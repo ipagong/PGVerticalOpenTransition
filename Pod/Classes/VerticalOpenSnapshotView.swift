@@ -12,8 +12,8 @@ public class VerticalOpenSnapshotView: UIImageView {
     
     public weak var targetView:UIView?
     
-    public static func createWith(_ view:UIView!) -> VerticalOpenSnapshotView? {
-        guard let image = self.snapshotImage(view) else { return nil }
+    public static func createWith(_ view:UIView!, afterScreenUpdates update:Bool? = false) -> VerticalOpenSnapshotView? {
+        guard let image = self.snapshotImage(view, afterScreenUpdates: update!) else { return nil }
         
         let snapShotview = VerticalOpenSnapshotView(image:image)
         snapShotview.targetView = view
@@ -22,9 +22,9 @@ public class VerticalOpenSnapshotView: UIImageView {
         return snapShotview
     }
     
-    fileprivate static func snapshotImage(_ view:UIView) -> UIImage? {
+    fileprivate static func snapshotImage(_ view:UIView, afterScreenUpdates update:Bool) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.isOpaque, 0)
-        view.drawHierarchy(in: view.bounds, afterScreenUpdates: false)
+        view.drawHierarchy(in: view.bounds, afterScreenUpdates: update)
         let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         return snapshotImage

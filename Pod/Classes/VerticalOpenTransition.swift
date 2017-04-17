@@ -9,7 +9,7 @@
 import UIKit
 import ObjectiveC
 
-public typealias VerticalOpenVoidBlock = () -> ()
+public typealias VerticalOpenVoidBlock = (Bool) -> ()
 
 @objc
 public protocol VerticalOpenTransitionDelegate : NSObjectProtocol {
@@ -315,8 +315,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         container.addSubview(to.view)
         
-        to.view.setNeedsLayout()
-        to.view.layoutIfNeeded()
+        from.view.layoutSubviews()
+        to.view.layoutSubviews()
         
         if maxDistance == 0 { updateMaxDistance() }
 
@@ -324,6 +324,9 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.initialCenterSnapshot?.addOpenTransitionAt(to.view, contentMode: .scaleAspectFill)
         }
         
+        self.destinationCenterSnapshot = createTransitionSnapshot(self.destinationCenterView, afterScreenUpdates: true)
+        
+        self.destinationCenterSnapshot?.addOpenTransitionAt(to.view)
         self.lowerSnapshots?.forEach({ $0.addOpenTransitionAt(to.view) })
         self.raiseSnapshots?.forEach({ $0.addOpenTransitionAt(to.view) })
         
@@ -331,8 +334,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         let originToCenterBounds:CGRect? = self.destinationCenterView?.bounds
         
         if self.onCenterContentMode == true {
-            self.destinationCenterView!.frame = self.initialCenterView!.frame
+            self.destinationCenterSnapshot!.frame = self.initialCenterView!.frame
         }
+        
+        self.setAlphaOriginalViews(0)
         
         UIView.animateKeyframes(withDuration: self.transitionDuration(using: context), delay: 0, options: [], animations: {
             
@@ -350,9 +355,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             
             if self.onCenterContentMode == true {
                 if (self.onCenterFadeMode == true) { self.initialCenterSnapshot!.frame = originToCenterFrame! }
-                
-                self.destinationCenterView!.frame  = originToCenterFrame!
-                self.destinationCenterView!.bounds = originToCenterBounds!
+                self.destinationCenterSnapshot!.frame = originToCenterFrame!
+                self.destinationCenterSnapshot!.bounds = originToCenterBounds!
             }
             
         }, completion: { _ in
@@ -361,12 +365,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.isAnimated = false
             to.modalPresentationStyle = self.openPresentationStyle
 
-            self.raiseViews?.forEach { $0.alpha = 1 }
-            self.lowerViews?.forEach { $0.alpha = 1 }
-            self.initialCenterView?.alpha     = 1
-            self.destinationCenterView?.alpha = 1
+            self.setAlphaOriginalViews(1)
             
             self.initialCenterSnapshot?.removeFromSuperview()
+            self.destinationCenterSnapshot?.removeFromSuperview()
             self.raiseSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(from.view) }
             self.lowerSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(from.view) }
             
@@ -381,14 +383,17 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             } else {
                 self.current = self.presenting
                 context.completeTransition(true)
-                self.presentBlock?()
             }
             
+            self.presentBlock?(!canceled)
             self.didActionStart = false
         })
     }
     
     private func dismissAnimation(from:UIViewController, to:UIViewController, container:UIView, context: UIViewControllerContextTransitioning) {
+        
+        from.view.layoutSubviews()
+        to.view.layoutSubviews()
         
         self.destinationCenterSnapshot?.addOpenTransitionAt(from.view)
         self.initialCenterSnapshot?.addOpenTransitionAt(from.view, contentMode: .scaleAspectFill)
@@ -406,6 +411,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             initialCenterSnapshot!.frame = destinationCenterView!.frame
             initialCenterSnapshot?.alpha = 0
         }
+        
+        self.setAlphaOriginalViews(0)
         
         UIView.animateKeyframes(withDuration: self.transitionDuration(using: context), delay: 0, options: [], animations: {
             
@@ -431,10 +438,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             
         }, completion: { _ in
             
-            self.raiseViews?.forEach { $0.alpha = 1 }
-            self.lowerViews?.forEach { $0.alpha = 1 }
-            self.initialCenterView?.alpha = 1
-            self.destinationCenterView?.alpha = 1
+            self.setAlphaOriginalViews(1)
             
             self.raiseSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(to.view) }
             self.lowerSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(to.view) }
@@ -451,9 +455,9 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             } else {
                 self.current = self.target
                 context.completeTransition(true)
-                self.dismissBlock?()
             }
             
+            self.dismissBlock?(!canceled)
             self.didActionStart = false
         })
     }
@@ -512,11 +516,11 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         UIView.addKeyframe(withRelativeStartTime: startTime, relativeDuration: 1, animations: { viewTransform(view) })
     }
     
-    private func createTransitionSnapshot(_ targetView:UIView?) -> UIView? {
+    private func createTransitionSnapshot(_ targetView:UIView?, afterScreenUpdates update:Bool? = false) -> UIView? {
         guard let  _  = targetView else { return nil }
         
         guard targetView is UINavigationBar == false else { return targetView }
-        guard let snapshot = VerticalOpenSnapshotView.createWith(targetView!) else { return nil }
+        guard let snapshot = VerticalOpenSnapshotView.createWith(targetView!, afterScreenUpdates: update) else { return nil }
         
         if let _ = targetView!.maxOpenDistance { snapshot.maxOpenDistance = targetView!.maxOpenDistance }
         return snapshot
@@ -528,6 +532,14 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         lowerSnapshots = self.lowerViews?.flatMap({ self.createTransitionSnapshot($0) })
         raiseSnapshots = self.raiseViews?.flatMap({ self.createTransitionSnapshot($0) })
+    }
+    
+    private func setAlphaOriginalViews(_ alpha: CGFloat) {
+        
+        self.raiseViews?.filter{ ($0 is UINavigationBar) == false }.forEach { $0.alpha = alpha }
+        self.lowerViews?.filter{ ($0 is UINavigationBar) == false }.forEach { $0.alpha = alpha }
+        self.initialCenterView?.alpha     = alpha
+        self.destinationCenterView?.alpha = alpha
     }
 
     //MARK: - UIVieControllerTransitioningDelegate methods
@@ -594,7 +606,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         updateSnapshots()
         
-        self.target.present(presenting!, animated: animated) { completion?() }
+        self.target.present(presenting!, animated: animated) { completion?(true) }
     }
     
     @objc
@@ -623,7 +635,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         updateSnapshots()
         
-        presenting!.dismiss(animated: animated) { completion?() }
+        presenting!.dismiss(animated: animated) { completion?(true) }
     }
     
     @objc public func setPresentCompletion(block:VerticalOpenVoidBlock?) { self.presentBlock = block }
