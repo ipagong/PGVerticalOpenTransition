@@ -25,9 +25,19 @@ public class VerticalOpenSnapshotView: UIImageView {
     fileprivate static func snapshotImage(_ view:UIView, afterScreenUpdates update:Bool) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.isOpaque, 0)
         view.drawHierarchy(in: view.bounds, afterScreenUpdates: update)
-        let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()!
+        let snapshotImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         return snapshotImage
+    }
+    
+    open func addOpenTransitionAt(_ willSuperView:UIView, contentMode:UIViewContentMode? = .center) {
+        if let superview = self.targetView?.superview {
+            self.frame.origin.y += max(0, willSuperView.frame.height - superview.frame.height)
+        }
+        
+        self.contentMode = contentMode!
+        
+        willSuperView.addSubview(self)
     }
     
 }

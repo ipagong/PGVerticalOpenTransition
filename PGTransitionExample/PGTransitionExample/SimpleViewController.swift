@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SimpleViewController: UIViewController {
+class SimpleViewController: UIViewController, VerticalOpenTransitionDelegate {
 
     private var openTransition:VerticalOpenTransition?
     private var detailVc:DetailViewController?
@@ -26,6 +26,7 @@ class SimpleViewController: UIViewController {
         
         openTransition!.raiseViews = [top, open]
         openTransition!.lowerViews = [bottom]
+        openTransition!.openDelegate = self
     
     }
     
@@ -42,6 +43,10 @@ class SimpleViewController: UIViewController {
         if let openSegue = segue as? VerticalOpenSegue {
             openSegue.transition = self.openTransition
         }
+    }
+    
+    func destinationCnterViewWithVerticalOpen(transition: VerticalOpenTransition) -> UIView! {
+        return detailVc?.imageView!
     }
     
 }

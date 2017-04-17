@@ -26,6 +26,7 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         tableview.alwaysBounceVertical = false
         
         innerVc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "Inner") as? InnerViewController
+        
         updateTransitionViews()
     }
     
@@ -43,7 +44,7 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         openTransition = VerticalOpenTransition(target: self, presenting: innerVc)
         openTransition!.openDelegate = self
         openTransition!.onCenterContent = true
-        openTransition!.onCenterFade = false
+        openTransition!.onCenterFade = true
         
         openTransition!.lowerViews = [bottomContents, bottomMenu]
         guard let _ = navigationController?.navigationBar else { return }
