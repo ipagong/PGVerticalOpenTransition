@@ -85,17 +85,31 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     private var openPresentationStyle:UIModalPresentationStyle { return .custom }
     private var presentBlock:VerticalOpenVoidBlock?
     private var dismissBlock:VerticalOpenVoidBlock?
+    
     private var canPresent:Bool {
         guard ((raiseViews?.count ?? 0) + (lowerViews?.count ?? 0)) > 0 else { return false }
         return self.openDelegate?.canPresentWith?(transition: self) ?? true
     }
-    private var canDismiss:Bool { return self.openDelegate?.canDismissWith?(transition: self) ?? true }
+    
+    private var canDismiss:Bool {
+        return self.openDelegate?.canDismissWith?(transition: self) ?? true
+    }
+    
+    
     
     private var raiseMaxDistance:CGFloat = 0
     private var lowerMaxDistance:CGFloat = 0
     private var maxDistance:CGFloat { return raiseMaxDistance > lowerMaxDistance ? raiseMaxDistance : lowerMaxDistance }
+    
     private var initialCenterView:UIView? { return self.openDelegate?.initialCenterViewWithVerticalOpen?(transition: self) }
     private var destinationCenterView:UIView? { return self.openDelegate?.destinationCnterViewWithVerticalOpen?(transition: self) }
+    
+    private var raiseSnapshots:Array<UIView>?
+    private var lowerSnapshots:Array<UIView>?
+    private var initialCenterSnapshot:UIView?
+    private var destinationCenterSnapshot:UIView?
+    
+    
     private var onCenterContentMode:Bool {
         guard self.onCenterContent == true else { return false }
         guard let _ = self.initialCenterView  else { return false }
@@ -194,6 +208,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             
             self.hasInteraction = true
             
+            updateSnapshots()
+            
         case .changed:
             self.presentOpenAction()
             
@@ -256,6 +272,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.beganPanPoint = location
             self.didLocked = nil
             
+            updateSnapshots()
+            
         case .changed:
             
             self.dismissAction()
@@ -302,10 +320,12 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         if maxDistance == 0 { updateMaxDistance() }
 
-        let initCenterSnapShot = (self.onCenterFadeMode == true ? self.initialCenterView?.addOpenTransitionSnapshotAt(to.view, contentMode: .scaleAspectFill) : nil)
+        if (self.onCenterFadeMode == true) {
+            self.initialCenterSnapshot?.addOpenTransitionAt(to.view, contentMode: .scaleAspectFill)
+        }
         
-        let lowerSnapshots = self.lowerViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
-        let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(to.view) })
+        self.lowerSnapshots?.forEach({ $0.addOpenTransitionAt(to.view) })
+        self.raiseSnapshots?.forEach({ $0.addOpenTransitionAt(to.view) })
         
         let originToCenterFrame:CGRect?  = self.destinationCenterView?.frame
         let originToCenterBounds:CGRect? = self.destinationCenterView?.bounds
@@ -317,19 +337,19 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         UIView.animateKeyframes(withDuration: self.transitionDuration(using: context), delay: 0, options: [], animations: {
             
             if (self.onCenterFadeMode == true) {
-                UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: { initCenterSnapShot!.alpha = 0 })
+                UIView.addKeyframe(withRelativeStartTime: 0, relativeDuration: 0.5, animations: { self.initialCenterSnapshot!.alpha = 0 })
             }
             
-            raiseSnapshots?.forEach {
+            self.raiseSnapshots?.forEach {
                 self.presentTransform(view: $0, viewTransform: { $0.transform = CGAffineTransform(translationX: 0, y: -$0.maxOpenDistance) })
             }
 
-            lowerSnapshots?.forEach {
+            self.lowerSnapshots?.forEach {
                 self.presentTransform(view: $0, viewTransform: { $0.transform = CGAffineTransform(translationX: 0, y: $0.maxOpenDistance) })
             }
             
             if self.onCenterContentMode == true {
-                if (self.onCenterFadeMode == true) { initCenterSnapShot!.frame = originToCenterFrame! }
+                if (self.onCenterFadeMode == true) { self.initialCenterSnapshot!.frame = originToCenterFrame! }
                 
                 self.destinationCenterView!.frame  = originToCenterFrame!
                 self.destinationCenterView!.bounds = originToCenterBounds!
@@ -346,9 +366,9 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.initialCenterView?.alpha     = 1
             self.destinationCenterView?.alpha = 1
             
-            initCenterSnapShot?.removeFromSuperview()
-            raiseSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(from.view) }
-            lowerSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(from.view) }
+            self.initialCenterSnapshot?.removeFromSuperview()
+            self.raiseSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(from.view) }
+            self.lowerSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(from.view) }
             
             if self.onCenterContentMode == true {
                 self.destinationCenterView!.frame  = originToCenterFrame!
@@ -370,39 +390,43 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     private func dismissAnimation(from:UIViewController, to:UIViewController, container:UIView, context: UIViewControllerContextTransitioning) {
         
-        let destCenterSnapShot = self.destinationCenterView?.addOpenTransitionSnapshotAt(from.view)
-        let initCenterSnapshot = self.initialCenterView?.addOpenTransitionSnapshotAt(from.view, contentMode: .scaleAspectFill)
-        let lowerSnapshots = self.lowerViews?.flatMap({ $0.addOpenTransitionSnapshotAt(from.view) })
-        let raiseSnapshots = self.raiseViews?.flatMap({ $0.addOpenTransitionSnapshotAt(from.view) })
+        self.destinationCenterSnapshot?.addOpenTransitionAt(from.view)
+        self.initialCenterSnapshot?.addOpenTransitionAt(from.view, contentMode: .scaleAspectFill)
         
-        raiseSnapshots?.forEach { $0.transform = CGAffineTransform(translationX: 0, y: -$0.maxOpenDistance) }
-        lowerSnapshots?.forEach { $0.transform = CGAffineTransform(translationX: 0, y:  $0.maxOpenDistance) }
+        self.lowerSnapshots?.forEach{
+            $0.addOpenTransitionAt(from.view)
+            $0.transform = CGAffineTransform(translationX: 0, y:  $0.maxOpenDistance)
+        }
+        self.raiseSnapshots?.forEach{
+            $0.addOpenTransitionAt(from.view)
+            $0.transform = CGAffineTransform(translationX: 0, y: -$0.maxOpenDistance)
+        }
         
         if self.onCenterContentMode == true {
-            initCenterSnapshot!.frame = destCenterSnapShot!.frame
-            initCenterSnapshot?.alpha = 0
+            initialCenterSnapshot!.frame = destinationCenterView!.frame
+            initialCenterSnapshot?.alpha = 0
         }
         
         UIView.animateKeyframes(withDuration: self.transitionDuration(using: context), delay: 0, options: [], animations: {
             
             if (self.onCenterFadeMode == true) {
-                UIView.addKeyframe(withRelativeStartTime: 0.8, relativeDuration: 1, animations: { initCenterSnapshot?.alpha = 1 })
+                UIView.addKeyframe(withRelativeStartTime: 0.8, relativeDuration: 1, animations: { self.initialCenterSnapshot?.alpha = 1 })
             }
             
-            raiseSnapshots?.forEach {
+            self.raiseSnapshots?.forEach {
                 self.dismissTransform(view: $0, viewTransform: { $0.transform = CGAffineTransform(translationX: 0, y: 0) })
             }
             
-            lowerSnapshots?.forEach {
+            self.lowerSnapshots?.forEach {
                 self.dismissTransform(view: $0, viewTransform: { $0.transform = CGAffineTransform(translationX: 0, y: 0) })
             }
             
             if self.onCenterContentMode == true {
-                initCenterSnapshot!.frame  = self.initialCenterView!.frame
-                destCenterSnapShot!.frame  = self.initialCenterView!.frame
-                destCenterSnapShot!.bounds = self.initialCenterView!.frame
-                destCenterSnapShot!.bounds.origin = CGPoint(x: self.destinationCenterView!.bounds.width/2  - self.initialCenterView!.frame.width/2,
-                                                            y: self.destinationCenterView!.bounds.height/2 - self.initialCenterView!.frame.height/2)
+                self.initialCenterSnapshot!.frame      = self.initialCenterView!.frame
+                self.destinationCenterSnapshot!.frame  = self.initialCenterView!.frame
+                self.destinationCenterSnapshot!.bounds = self.initialCenterView!.frame
+                self.destinationCenterSnapshot!.bounds.origin = CGPoint(x: self.destinationCenterView!.bounds.width/2  - self.initialCenterView!.frame.width/2,
+                                                                        y: self.destinationCenterView!.bounds.height/2 - self.initialCenterView!.frame.height/2)
             }
             
         }, completion: { _ in
@@ -412,10 +436,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.initialCenterView?.alpha = 1
             self.destinationCenterView?.alpha = 1
             
-            raiseSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(to.view) }
-            lowerSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(to.view) }
-            destCenterSnapShot?.removeFromSuperview()
-            initCenterSnapshot?.removeFromSuperview()
+            self.raiseSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(to.view) }
+            self.lowerSnapshots?.forEach { $0.removeOpenTransitionSnapshotAt(to.view) }
+            self.destinationCenterSnapshot?.removeFromSuperview()
+            self.initialCenterSnapshot?.removeFromSuperview()
             
             let canceled = context.transitionWasCancelled
             self.isAnimated = false
@@ -471,36 +495,39 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     }
     
     override public func update(_ percentComplete: CGFloat) {
-        super.update(max(0+0.0001, min(1-0.0001, percentComplete)))
+        guard percentComplete > 0 else { return }
+        guard percentComplete < 1 else { return }
+        super.update(percentComplete)
     }
     
     private func presentTransform(view:UIView, viewTransform:@escaping (UIView) -> (Void)) {
-        var startTime:Double = 0
-        
-        if let snapshot = view as? VerticalOpenSnapshotView {
-            startTime = self.openDelegate?.startPresentProcessWith?(transition: self, targetView: snapshot.targetView) ?? 0
-        } else {
-            startTime = self.openDelegate?.startPresentProcessWith?(transition: self, targetView: view) ?? 0
-        }
-        
-        UIView.addKeyframe(withRelativeStartTime: startTime, relativeDuration: 1, animations: {
-            viewTransform(view)
-        })
+        let snapshot  = view as? VerticalOpenSnapshotView
+        let startTime = self.openDelegate?.startPresentProcessWith?(transition: self, targetView: snapshot?.targetView ?? view ) ?? 0.0
+        UIView.addKeyframe(withRelativeStartTime: startTime, relativeDuration: 1, animations: { viewTransform(view) })
+    }
+
+    private func dismissTransform(view:UIView, viewTransform:@escaping (UIView) -> (Void)) {
+        let snapshot  = view as? VerticalOpenSnapshotView
+        let startTime = self.openDelegate?.startDismissProcessWith?(transition: self, targetView: snapshot?.targetView ?? view ) ?? 0.0
+        UIView.addKeyframe(withRelativeStartTime: startTime, relativeDuration: 1, animations: { viewTransform(view) })
     }
     
+    private func createTransitionSnapshot(_ targetView:UIView?) -> UIView? {
+        guard let  _  = targetView else { return nil }
+        
+        guard targetView is UINavigationBar == false else { return targetView }
+        guard let snapshot = VerticalOpenSnapshotView.createWith(targetView!) else { return nil }
+        
+        if let _ = targetView!.maxOpenDistance { snapshot.maxOpenDistance = targetView!.maxOpenDistance }
+        return snapshot
+    }
     
-    private func dismissTransform(view:UIView, viewTransform:@escaping (UIView) -> (Void)) {
-        var startTime:Double = 0
+    private func updateSnapshots() {
+        destinationCenterSnapshot = self.createTransitionSnapshot(self.destinationCenterView)
+        initialCenterSnapshot     = self.createTransitionSnapshot(self.initialCenterView)
         
-        if let snapshot = view as? VerticalOpenSnapshotView {
-            startTime = self.openDelegate?.startDismissProcessWith?(transition: self, targetView: snapshot.targetView) ?? 0
-        } else {
-            startTime = self.openDelegate?.startDismissProcessWith?(transition: self, targetView: view) ?? 0
-        }
-        
-        UIView.addKeyframe(withRelativeStartTime: startTime, relativeDuration: 1, animations: {
-            viewTransform(view)
-        })
+        lowerSnapshots = self.lowerViews?.flatMap({ self.createTransitionSnapshot($0) })
+        raiseSnapshots = self.raiseViews?.flatMap({ self.createTransitionSnapshot($0) })
     }
 
     //MARK: - UIVieControllerTransitioningDelegate methods
@@ -514,13 +541,11 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     }
     
     public func interactionControllerForPresentation(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        guard self.hasInteraction == true else { return nil }
-        return self
+        return (self.hasInteraction == true ? self : nil)
     }
     
     public func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        guard self.hasInteraction == true else { return nil }
-        return self
+        return (self.hasInteraction == true ? self : nil)
     }
     
     //MARK: - UIViewControllerAnimatedTransitioning methods
@@ -567,6 +592,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         presenting!.modalPresentationStyle = self.openPresentationStyle
         presenting!.transitioningDelegate  = self
         
+        updateSnapshots()
+        
         self.target.present(presenting!, animated: animated) { completion?() }
     }
     
@@ -589,10 +616,12 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         guard isPresented == true     else { return }
         guard percentComplete == 0    else { return }
         
+        self.isAnimated = true
+        
         presenting!.modalPresentationStyle = self.openPresentationStyle
         presenting!.transitioningDelegate  = self
         
-        self.isAnimated = true
+        updateSnapshots()
         
         presenting!.dismiss(animated: animated) { completion?() }
     }
@@ -609,24 +638,14 @@ extension UIView {
         set(newValue) { objc_setAssociatedObject(self, &maxOpenDistanceAssociatedKey, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN) }
     }
     
-    fileprivate func addOpenTransitionSnapshotAt(_ willSuperView:UIView, contentMode:UIViewContentMode? = .center) -> UIView? {
-        guard self is UINavigationBar == false else {
-            willSuperView.addSubview(self)
-            return self
+    fileprivate func addOpenTransitionAt(_ willSuperView:UIView, contentMode:UIViewContentMode? = .center) {
+        if let superview = self.superview {
+            self.frame.origin.y += max(0, willSuperView.frame.height - superview.frame.height)
         }
         
-        guard let snapshot = VerticalOpenSnapshotView.createWith(self) else { return nil }
+        self.contentMode = contentMode!
         
-        if let _ = self.maxOpenDistance { snapshot.maxOpenDistance = self.maxOpenDistance }
-        
-        let gap = max(0, willSuperView.frame.height - self.superview!.frame.height)
-        
-        snapshot.frame = self.frame
-        snapshot.frame.origin.y += gap
-        snapshot.contentMode = contentMode!
-        willSuperView.addSubview(snapshot)
-        self.alpha = 0
-        return snapshot
+        willSuperView.addSubview(self)
     }
     
     fileprivate func removeOpenTransitionSnapshotAt(_ willSuperView:UIView) {
