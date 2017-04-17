@@ -639,7 +639,7 @@ extension UIView {
     }
     
     fileprivate func addOpenTransitionAt(_ willSuperView:UIView, contentMode:UIViewContentMode? = .center) {
-        if let superview = self.superview {
+        if let superview = (self as? VerticalOpenSnapshotView)?.targetView?.superview {
             self.frame.origin.y += max(0, willSuperView.frame.height - superview.frame.height)
         }
         
