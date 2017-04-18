@@ -36,10 +36,13 @@ public protocol VerticalOpenTransitionDelegate : NSObjectProtocol {
     
     @objc optional
     func customAnimationSetupWith(transition:VerticalOpenTransition, type:VerticalOpenTransition.TransitionType, time:VerticalOpenTransition.AnimationTime, from:UIView, to:UIView)
+    
+    @objc optional
+    func verticalTransition(_ transition:VerticalOpenTransition, gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool
 }
 
 @objc
-public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIViewControllerAnimatedTransitioning, UIViewControllerTransitioningDelegate, UIGestureRecognizerDelegate {
+public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIViewControllerAnimatedTransitioning, UIViewControllerTransitioningDelegate {
     
     public var raiseViews:Array<UIView>? { didSet { updateMaxDistance() } }
     public var lowerViews:Array<UIView>? { didSet { updateMaxDistance() } }
@@ -52,8 +55,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     public var presentDuration:TimeInterval = 0.3
     public var dismissDuration:TimeInterval = 0.3
     
-    public var onCenterContent:Bool = false //default false.
-    public var onCenterFade:Bool    = true //default true.
+    public var onCenterContent:Bool = false
+    public var onCenterFade:Bool    = true
     public var dismissTouchHeight:CGFloat = 200.0
     
     public weak var openDelegate:VerticalOpenTransitionDelegate?
@@ -151,13 +154,13 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         self.current = target
     }
     
-    lazy private var presentGesture:UIPanGestureRecognizer = {
+    lazy public var presentGesture:UIPanGestureRecognizer = {
         let gesutre = UIPanGestureRecognizer(target: self, action: #selector(onPresentWith(gesture:)))
         gesutre.delegate = self
         return gesutre
     }()
     
-    lazy private var dismissGesture:UIPanGestureRecognizer = {
+    lazy public var dismissGesture:UIPanGestureRecognizer = {
         let gesutre = UIPanGestureRecognizer(target: self, action: #selector(onDismissWith(gesture:)))
         gesutre.delegate = self
         return gesutre
@@ -647,6 +650,23 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     @objc public func setPresentCompletion(block:VerticalOpenVoidBlock?) { self.presentBlock = block }
     @objc public func setDismissCompletion(block:VerticalOpenVoidBlock?) { self.dismissBlock = block }
+    
+}
+
+extension VerticalOpenTransition : UIGestureRecognizerDelegate {
+    
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+
+        guard let view = gestureRecognizer.view else { return false }
+        
+        if let enable = self.openDelegate?.verticalTransition?(self, gestureRecognizer: gestureRecognizer, shouldReceive: touch) {
+            return enable
+        }
+        
+        guard gestureRecognizer == self.dismissGesture else { return true }
+        if (touch.location(in: view).y < (view.frame.height - self.dismissTouchHeight)) { return false }
+        return true
+    }
 }
 
 private var maxOpenDistanceAssociatedKey: UInt8 = 0
