@@ -364,7 +364,11 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.openDelegate?.customAnimationSetupWith?(transition: self, type: .present, time: .animated, from: from.view, to: to.view)
 
         }, completion: { _ in
-
+            
+            let canceled = context.transitionWasCancelled
+            
+            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .present, time: canceled ? .canceled : .completed, from: from.view, to: to.view)
+            
             self.raiseViews?.forEach { $0.alpha = 1 }
             self.lowerViews?.forEach { $0.alpha = 1 }
             self.initialCenterView?.alpha = 1
@@ -374,7 +378,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 self.destinationCenterView!.frame  = self.destinationCenterViewFrame!
             }
             
-            let canceled = context.transitionWasCancelled
             to.modalPresentationStyle = self.openPresentationStyle
 
             self.initialCenterSnapshot?.removeFromSuperview()
@@ -390,8 +393,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 context.completeTransition(true)
             }
 
-            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .present, time: canceled ? .canceled : .completed, from: from.view, to: to.view)
-            
             self.presentBlock?(!canceled)
             self.didActionStart = false
         })
@@ -451,6 +452,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             
         }, completion: { _ in
             
+            let canceled = context.transitionWasCancelled
+            
+            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .dismiss, time: canceled ? .canceled : .completed, from: from.view, to: to.view)
+            
             self.raiseViews?.forEach { $0.alpha = 1 }
             self.lowerViews?.forEach { $0.alpha = 1 }
             self.destinationCenterView?.alpha = 1
@@ -460,7 +465,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             self.destinationCenterSnapshot?.removeFromSuperview()
             self.initialCenterSnapshot?.removeFromSuperview()
             
-            let canceled = context.transitionWasCancelled
             to.modalPresentationStyle = self.openPresentationStyle
             
             if canceled == true {
@@ -470,8 +474,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 self.current = self.target
                 context.completeTransition(true)
             }
-            
-            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .dismiss, time: canceled ? .canceled : .completed, from: from.view, to: to.view)
             
             self.dismissBlock?(!canceled)
             self.didActionStart = false
