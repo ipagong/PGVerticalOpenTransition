@@ -51,19 +51,19 @@ class ViewController: UIViewController, VerticalOpenTransitionDelegate {
         openTransition!.raiseViews = [navigationController!.navigationBar]
     }
     
-    func initialCenterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView! {
+    func initialCenterViewWith(transition:VerticalOpenTransition) -> UIView! {
         return self.mapView
     }
     
-    func destinationCnterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView! {
+    func destinationCnterViewWith(transition:VerticalOpenTransition) -> UIView! {
         return self.innerVc!.mapview
     }
     
-    func lockPresentVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool {
+    func lockPresentWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool {
         return false
     }
     
-    func lockDismissVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool {
+    func lockDismissWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool {
         return false
     }
     

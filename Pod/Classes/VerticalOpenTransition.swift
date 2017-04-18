@@ -24,14 +24,18 @@ public protocol VerticalOpenTransitionDelegate : NSObjectProtocol {
     func startDismissProcessWith(transition:VerticalOpenTransition, targetView:UIView?) -> Double
     
     @objc optional
-    func lockPresentVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool
+    func lockPresentWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool
     @objc optional
-    func lockDismissVerticalOpenWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool
+    func lockDismissWith(transition:VerticalOpenTransition, distance:CGFloat, velocity:CGPoint, state:UIGestureRecognizerState) -> Bool
     
     @objc optional
-    func initialCenterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
+    func initialCenterViewWith(transition:VerticalOpenTransition) -> UIView!
     @objc optional
-    func destinationCnterViewWithVerticalOpen(transition:VerticalOpenTransition) -> UIView!
+    func destinationCnterViewWith(transition:VerticalOpenTransition) -> UIView!
+    
+    
+    @objc optional
+    func customAnimationSetupWith(transition:VerticalOpenTransition, type:VerticalOpenTransition.TransitionType, time:VerticalOpenTransition.AnimationTime, from:UIView, to:UIView)
 }
 
 @objc
@@ -96,11 +100,11 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
     
     
     private var maxDistance:CGFloat = 0
-    private var initialCenterView:UIView? { return self.openDelegate?.initialCenterViewWithVerticalOpen?(transition: self) }
+    private var initialCenterView:UIView? { return self.openDelegate?.initialCenterViewWith?(transition: self) }
     private var initialCenterViewFrame:CGRect?
     private var initialCenterViewBounds:CGRect?
     
-    private var destinationCenterView:UIView? { return self.openDelegate?.destinationCnterViewWithVerticalOpen?(transition: self) }
+    private var destinationCenterView:UIView? { return self.openDelegate?.destinationCnterViewWith?(transition: self) }
     private var destinationCenterViewFrame:CGRect?
     private var destinationCenterViewBounds:CGRect?
     
@@ -189,10 +193,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         let location = gesture.location(in: window)
         let velocity = gesture.velocity(in: window)
 
-        didLocked = self.openDelegate?.lockPresentVerticalOpenWith?(transition: self,
-                                                                    distance: location.y - self.beganPanPoint.y,
-                                                                    velocity: velocity,
-                                                                    state: gesture.state)
+        didLocked = self.openDelegate?.lockPresentWith?(transition: self,
+                                                        distance: location.y - self.beganPanPoint.y,
+                                                        velocity: velocity,
+                                                        state: gesture.state)
         
         if gesture.state != .began && didLocked == true { return }
         
@@ -249,10 +253,10 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         let location = gesture.location(in: window)
         let velocity = gesture.velocity(in: window)
         
-        didLocked = self.openDelegate?.lockDismissVerticalOpenWith?(transition: self,
-                                                                    distance: self.beganPanPoint.y - location.y,
-                                                                    velocity: velocity,
-                                                                    state: gesture.state)
+        didLocked = self.openDelegate?.lockDismissWith?(transition: self,
+                                                        distance: self.beganPanPoint.y - location.y,
+                                                        velocity: velocity,
+                                                        state: gesture.state)
         
         if gesture.state != .began && didLocked == true { return }
         
@@ -305,7 +309,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         }
     }
     
-    
     private func presentAnimation(from:UIViewController, to:UIViewController, container:UIView, context: UIViewControllerContextTransitioning) {
         
         container.addSubview(to.view)
@@ -330,6 +333,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         self.raiseViews?.forEach { $0.alpha = 0 }
         self.lowerViews?.forEach { $0.alpha = 0 }
         self.initialCenterView?.alpha = 0
+        
+        self.openDelegate?.customAnimationSetupWith?(transition: self, type: .present, time: .previous, from: from.view, to: to.view)
 
         UIView.animateKeyframes(withDuration: self.transitionDuration(using: context), delay: 0, options: [], animations: {
 
@@ -355,6 +360,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
             }
             
             self.initialCenterSnapshot?.alpha = 0
+            
+            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .present, time: .animated, from: from.view, to: to.view)
 
         }, completion: { _ in
 
@@ -383,6 +390,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 context.completeTransition(true)
             }
 
+            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .present, time: .completed, from: from.view, to: to.view)
+            
             self.presentBlock?(!canceled)
             self.didActionStart = false
         })
@@ -414,6 +423,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         self.lowerViews?.forEach { $0.alpha = 0 }
         self.destinationCenterView?.alpha = 0
         
+        self.openDelegate?.customAnimationSetupWith?(transition: self, type: .dismiss, time: .previous, from: from.view, to: to.view)
+        
         UIView.animateKeyframes(withDuration: self.transitionDuration(using: context), delay: 0, options: [], animations: {
             
             if (self.onCenterFadeMode == true) {
@@ -436,6 +447,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                                                                         y: self.destinationCenterView!.bounds.height/2 - self.initialCenterView!.frame.height/2)
             }
             
+            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .dismiss, time: .animated, from: from.view, to: to.view)
+            
         }, completion: { _ in
             
             self.raiseViews?.forEach { $0.alpha = 1 }
@@ -457,6 +470,8 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 self.current = self.target
                 context.completeTransition(true)
             }
+            
+            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .dismiss, time: .completed, from: from.view, to: to.view)
             
             self.dismissBlock?(!canceled)
             self.didActionStart = false
@@ -536,7 +551,6 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
         
         lowerSnapshots = self.lowerViews?.flatMap({ self.createTransitionSnapshot($0) })
         raiseSnapshots = self.raiseViews?.flatMap({ self.createTransitionSnapshot($0) })
-        
     }
 
     //MARK: - UIVieControllerTransitioningDelegate methods
@@ -642,3 +656,17 @@ extension UIView {
     }
 }
 
+extension VerticalOpenTransition {
+    @objc
+    public enum TransitionType : NSInteger {
+        case present
+        case dismiss
+    }
+    
+    @objc
+    public enum AnimationTime : NSInteger {
+        case previous
+        case animated
+        case completed
+    }
+}

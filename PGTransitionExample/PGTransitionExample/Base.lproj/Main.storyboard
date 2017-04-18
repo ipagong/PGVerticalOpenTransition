@@ -88,7 +88,7 @@
                                 <rect key="frame" x="0.0" y="64" width="375" height="124"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <connections>
-                                    <segue destination="sLj-ZC-82w" kind="custom" identifier="open" customClass="VerticalOpenSegue" customModule="PGTransitionExample" customModuleProvider="target" animates="NO" id="1T6-QF-BkU"/>
+                                    <segue destination="sLj-ZC-82w" kind="custom" identifier="open" customClass="VerticalOpenSegue" customModule="PGTransitionExample" customModuleProvider="target" id="1T6-QF-BkU"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -170,7 +170,7 @@
                                     <color key="titleColor" cocoaTouchSystemColor="darkTextColor"/>
                                 </state>
                                 <connections>
-                                    <segue destination="pH2-Qo-N3R" kind="custom" identifier="open" customClass="VerticalOpenSegue" customModule="PGTransitionExample" customModuleProvider="target" animates="NO" id="pjA-Xa-9IY"/>
+                                    <segue destination="pH2-Qo-N3R" kind="custom" identifier="open" customClass="VerticalOpenSegue" customModule="PGTransitionExample" customModuleProvider="target" id="pjA-Xa-9IY"/>
                                 </connections>
                             </button>
                         </subviews>
