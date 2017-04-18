@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "PGVerticalOpenTransition"
-  s.version          = "0.1.3"
+  s.version          = "0.1.4"
   s.summary          = "Percentage Interaction Vertical Open Transition for Swift."
 
 # This description is used to generate tags and improve search results.
