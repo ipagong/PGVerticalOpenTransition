@@ -390,7 +390,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 context.completeTransition(true)
             }
 
-            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .present, time: .completed, from: from.view, to: to.view)
+            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .present, time: canceled ? .canceled : .completed, from: from.view, to: to.view)
             
             self.presentBlock?(!canceled)
             self.didActionStart = false
@@ -471,7 +471,7 @@ public class VerticalOpenTransition: UIPercentDrivenInteractiveTransition, UIVie
                 context.completeTransition(true)
             }
             
-            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .dismiss, time: .completed, from: from.view, to: to.view)
+            self.openDelegate?.customAnimationSetupWith?(transition: self, type: .dismiss, time: canceled ? .canceled : .completed, from: from.view, to: to.view)
             
             self.dismissBlock?(!canceled)
             self.didActionStart = false
@@ -668,5 +668,6 @@ extension VerticalOpenTransition {
         case previous
         case animated
         case completed
+        case canceled
     }
 }
